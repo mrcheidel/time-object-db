@@ -12,6 +12,8 @@ The main features of this DB are:
 
 ![Image description](doc/api-screen-shot-1.PNG =250x)
 
+<img src="https://github.com/mrcheidel/time-object-db/raw/master/doc/api-screen-shot-1.PNG" width="50%" height="50%">
+
 API Contract: https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract
 
 ## Solution:
