@@ -1,0 +1,233 @@
+swagger: "2.0"
+info:
+  title: Time Object DB
+  version: 1.0.0
+  description: Time Object DB API Contract
+
+host: 'time-object-db.claudioheidel.repl.co'
+basePath: /
+schemes:
+  - https
+tags:
+  - name: Metrics
+paths:
+  '/metrics/{metricName}':
+    get:
+      summary: Service to fetch the list of metrics values.
+      description: This service fetches the list values in the metric in an time interval.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Metrics
+      operationId: resourceListEnquiry
+      parameters:
+        - name: metricName
+          in: path
+          description: Metric Name
+          required: true
+          type: string
+        - name: fr
+          in: query
+          description: 'From Epoc datetime. Example: 1572949522'
+          required: true
+          type: number
+        - name: to
+          in: query
+          description: 'To Epoc datetime. Example: 1572949522'
+          required: true
+          type: number
+      responses:
+        '200':
+          description: OK - The list of resources was retrieved successfully and it is included in the body of the response.
+          schema:
+            $ref: '#/definitions/metricEnquiryResponse'
+        '400':
+          description: Bad Request - If the resource is misspelled (badly constructed URI) / If the data in the request is not correct.
+          schema:
+            $ref: '#/definitions/400BadRequestError'
+        '500':
+          description: Internal Server Error - Use it as a General System Error.
+          schema:
+            $ref: '#/definitions/500InternalServerError'
+
+    post:
+      summary: Service to create a new metric value .
+      description: This service creates a new value in the metrics collection. The payload in the request body must contain all the mandatory attributes defined for the Resource object (Bussiness Data Schema). The response will contain the resource identifier and the link to retrieve the complete details of the resource.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Metrics
+      operationId: metricCreationEnquiry
+      parameters:
+        - name: metricName
+          in: path
+          description: Metric Name
+          required: true
+          type: string
+        - name: request
+          in: body
+          description: Object to be inserted into the DB
+          required: true
+          schema:
+            $ref: "#/definitions/metricCreationRequest"
+      responses:
+        '201':
+          description: Created - The resource was created successfully and its identifier and link to the details are included in the body of the response.
+          schema:
+            $ref: '#/definitions/metricCreationResponse'
+        '400':
+          description: Bad Request - If the resource is misspelled (badly constructed URI) / If the data in the request is not correct.
+          schema:
+            $ref: '#/definitions/400BadRequestError'
+        '500':
+          description: Internal Server Error - Use it as a General System Error.
+          schema:
+            $ref: '#/definitions/500InternalServerError'
+
+    delete:
+      summary: Service to delete a metric from the collection.
+      description: This service delete an specific metric from the metrics.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Metrics
+      operationId: resourceDelete
+      parameters:
+        - name: metricName
+          in: path
+          description: Metric Name
+          required: true
+          type: string
+
+      responses:
+        '204':
+          description: Created - The resource was created successfully and its identifier and link to the details are included in the body of the response.
+        '400':
+          description: Bad Request - If the resource is misspelled (badly constructed URI) / If the data in the request is not correct.
+          schema:
+            $ref: '#/definitions/400BadRequestError'
+        '500':
+          description: Internal Server Error - Use it as a General System Error.
+          schema:
+            $ref: '#/definitions/500InternalServerError'
+
+definitions:
+  metricEnquiryResponse:
+    type: object
+    description: List of objects
+    properties:
+      data:
+        type: array
+        description: Subset of attributes for each of the retrieved resources.
+        items:
+          type: object
+      self:
+        type: object
+        properties:
+          find:
+            type: number
+            description: Total number of fields in the result
+            example: 1
+          limit:
+            type: number
+            description: Max Number of elements
+            example: 300
+          total:
+            type: number
+            description: Total number of fields in the DB
+            example: 300
+          min:
+            type: number
+            description: Minimun value in the query
+            example: 1572949522
+          max:
+            type: number
+            description: Maximun value in the query
+            example: 1572949522
+    title: metricEnquiryResponse
+
+
+  metricCreationRequest:
+    type: object
+    description: Resource identifier and link to the details of the resource that has just been created.
+    example:
+      firstName: Claudio
+      lastName: Heidel Schemberger
+      gender: Male
+      department: Architecture
+      currentCompany: Cognizant
+      location: Madrid
+      country: Spain
+      tm: 1572950430
+      
+  metricCreationResponse:
+    type: object
+    description: Resource identifier and link to the details of the resource that has just been created.
+
+  errorObject:
+    type: object
+    description: Error details
+    properties:
+      code:
+        type: string
+        description: Error code
+        example: '400'
+      description:
+        type: string
+        description: Error description
+        example: Bad Request
+      level:
+        type: string
+        description: Error level
+        enum: [INFO, ERROR, WARNING, FATAL]
+        example: ERROR
+      message:
+        type: string
+        description: Error message (detailed description)
+        example: Invalid Request. Please, check the data in the request (QueryString Parameters and/or Body).
+    title: errorObject
+    example:
+      code: '400'
+      description: Bad Request
+      level: ERROR
+      message: Invalid Request. Please, check the data in the request (QueryString Parameters and/or Body).
+
+  400BadRequestError:
+    type: object
+    description: List of errors
+    properties:
+      errors:
+        type: array
+        description: Details of each of the errors
+        items:
+          $ref: '#/definitions/errorObject'
+    title: 400BadRequestError
+    example:
+      errors:
+        - code: '400'
+          description: Bad Request
+          level: ERROR
+          message: Invalid Request. Please, check the data in the request (QueryString Parameters and/or Body).
+
+  500InternalServerError:
+    type: object
+    description: List of errors
+    properties:
+      errors:
+        type: array
+        description: Details of each of the errors
+        items:
+          $ref: '#/definitions/errorObject'
+    title: 500InternalServerError
+    example:
+      errors:
+        - code: '500'
+          description: Internal Server Error
+          level: ERROR
+          message: Internal Server Error. The server encountered an unexpected condition that prevented it from fulfilling the request.
