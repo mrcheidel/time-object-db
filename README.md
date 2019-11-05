@@ -12,6 +12,8 @@ The main features of this DB are:
 
 ![Image description](doc/api-screen-shot-1.PNG)
 
+API Contract: https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract
+
 ## Solution:
 
 timeObjectsDB use single files in order to persist the information splited in three levels:
@@ -23,8 +25,6 @@ timeObjectsDB use single files in order to persist the information splited in th
 Exist an index file per each Level 2 folder, this index help to find existing Level 3 files and prevent to use a full-scan to find the existing files.
   
 ## Real time examples
-
-API Contract: https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract
 
 Online Demo: https://time-object-db.claudioheidel.repl.co
 
