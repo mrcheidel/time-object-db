@@ -10,7 +10,7 @@ The main features of this DB are:
 - Fetch metrics Objects from a windows time (betweeen fromEpoc and toEpoc)
 - Delete Objects from an specific metric.
 
-![Image description](doc/api-screen-shot-1.PNG  =250x)
+![Image description](doc/api-screen-shot-1.PNG =250x)
 
 API Contract: https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract
 
