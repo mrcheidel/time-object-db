@@ -10,6 +10,8 @@ The main features of this DB are:
 - Fetch metrics Objects from a windows time (betweeen fromEpoc and toEpoc)
 - Delete Objects from an specific metric.
 
+![Image description](doc/api-screen-shot-1.PNG)
+
 ## Solution:
 
 timeObjectsDB use single files in order to persist the information splited in three levels:
