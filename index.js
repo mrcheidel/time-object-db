@@ -12,10 +12,15 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.get ('/',  function (req, res) {
-  res.status(200).send("Welcome to timeObjectsDB");
+  let msg = "Welcome to timeObjectsDB<br>API Contract: <a href='https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract' target='_blank'>Swagger</a>";
+  res.status(200).send(msg);
 });
 
-app.delete ('/reset/:metric',  function (req, res) {
+app.get ('/contract',  function (req, res) {
+  res.sendFile(__dirname + '/swagger.yaml');
+});
+
+app.delete ('/metrics/:metric',  function (req, res) {
   let metric = req.params.metric;
   var reg = new RegExp("^[a-zA-Z]+$");
   if (metric.length == 0 || !reg.test(metric)) {
@@ -25,10 +30,10 @@ app.delete ('/reset/:metric',  function (req, res) {
   var tp = new objdb({"basepath": __dirname + "/data/"});
   tp.reset(metric);
   if(debug) console.log ("Metric " + metric + " has been deleted.");
-  res.status(200).send();
+  res.status(204).send();
 });
 
-app.post ('/points/:metric',  function (req, res) {
+app.post ('/metrics/:metric',  function (req, res) {
   let result = {};
   try {
     let start = new Date();
@@ -38,17 +43,17 @@ app.post ('/points/:metric',  function (req, res) {
 
     var reg = new RegExp("^[a-zA-Z]+$");
     if (metric.length == 0 || !reg.test(metric)) {
-      res.status(400).send("The \"metric\" path parameter can't be empty and only could be contain a-zA-Z characters");
+      res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"metric\" path parameter can't be empty and only could be contain a-zA-Z characters"));
       return;
     }
 
     if (Object.keys(obj).length == 0) {
-      res.status(400).send("The \"body\" need to be contain a JSON object");
+      res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"body\" need to be contain a JSON object"));
       return;
     } 
 
     if (isNaN(obj.tm)) {
-      res.status(400).send("The \"tm\" body property need to be a epoc datetime number");
+      res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"tm\" body property need to be a epoc datetime number"));
       return;
     }
  
@@ -70,16 +75,16 @@ app.post ('/points/:metric',  function (req, res) {
         if(debug) console.log ("New object for the metric " + metric + " has been created.");
     }).catch (error => {
         console.log (error);
-        res.status(500).send("Internal Error");
+        res.status(500).send(newErrorObject ("500", "Internal Server Error", "ERROR",""));
     });
 
   } catch (e) {
     console.log (e);
-    res.status(500).send("Internal Error");
+    res.status(500).send(newErrorObject ("500", "Internal Server Error", "ERROR",""));
   } 
 });
 
-app.get ('/points/:metric',  function (req, res) {
+app.get ('/metrics/:metric',  function (req, res) {
   let result = {};
   try {
     let start = new Date();
@@ -89,17 +94,17 @@ app.get ('/points/:metric',  function (req, res) {
 
     var reg = new RegExp("^[a-zA-Z]+$");
     if (metric.length == 0 || !reg.test(metric)) {
-      res.status(400).send("The \"metric\" path parameter can't be empty and only could be contain a-zA-Z characters");
+      res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"metric\" path parameter can't be empty and only could be contain a-zA-Z characters"));
       return;
     }
 
     if (isNaN(fr)) {
-      res.status(400).send("The \"fr\" query parameter need to be a epoc datetime number");
+      res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"fr\" query parameter need to be a epoc datetime number"));
       return;
     }
 
     if (isNaN(to)) {
-      res.status(400).send("The \"to\" query parameter need to be a epoc datetime number");
+      res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"to\" query parameter need to be a epoc datetime number"));
       return;
     }
 
@@ -118,11 +123,11 @@ app.get ('/points/:metric',  function (req, res) {
         if(debug) console.log ("New search on the metric " + metric + " as been executed [fr= "+ fr +" & to=" + to +"].");
     }).catch (error => {
       console.log (error);
-      res.status(500).send("Internal Error");
+      res.status(500).send(newErrorObject ("500", "Internal Server Error", "ERROR",""));
     });
   } catch (e) {
     console.log (e);
-    res.status(500).send("Internal Error");
+    res.status(500).send(newErrorObject ("500", "Internal Server Error", "ERROR",""));
   } 
 });
 
@@ -143,3 +148,11 @@ var server = app.listen(null, function () {
    console.log ("Server Running on port " + server.address().port);
 })
 
+function newErrorObject (code, description, level,message){
+  let result = {};
+  result.code = code; 
+  result.description = description; 
+  result.level = level; //[INFO, ERROR, WARNING, FATAL]
+  result.message = message;
+  return result;
+}
