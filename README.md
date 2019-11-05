@@ -10,9 +10,20 @@ The main features of this DB are:
 - Fetch metrics Objects from a windows time (betweeen fromEpoc and toEpoc)
 - Delete Objects from an specific metric.
 
-![Image description](doc/api-screen-shot-1.PNG)
+### API Contract: 
 
-API Contract: https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract
+https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract
+
+<img src="https://github.com/mrcheidel/time-object-db/raw/master/doc/api-screen-shot-1.PNG" width="75%" height="75%">
+
+### Postman Collection
+
+<img src="https://github.com/mrcheidel/time-object-db/raw/master/doc/post-example.png" width="75%" height="75%">
+
+<img src="https://github.com/mrcheidel/time-object-db/raw/master/doc/get-example.PNG" width="75%" height="75%">
+
+<img src="https://github.com/mrcheidel/time-object-db/raw/master/doc/delete-example.PNG" width="75%" height="75%">
+
 
 ## Solution:
 
