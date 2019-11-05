@@ -34,7 +34,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://time-object-db.claudioheidel.repl.co/points/MetricName?fr=1572944094&to=1572944094",
+					"raw": "https://time-object-db.claudioheidel.repl.co/metrics/MetricName?fr=1572949522&to=1572949522",
 					"protocol": "https",
 					"host": [
 						"time-object-db",
@@ -43,7 +43,7 @@
 						"co"
 					],
 					"path": [
-						"points",
+						"metrics",
 						"MetricName"
 					],
 					"query": [
@@ -54,11 +54,11 @@
 						},
 						{
 							"key": "fr",
-							"value": "1572944094"
+							"value": "1572949522"
 						},
 						{
 							"key": "to",
-							"value": "1572944094"
+							"value": "1572949522"
 						}
 					]
 				}
@@ -114,7 +114,7 @@
 					}
 				},
 				"url": {
-					"raw": "https://time-object-db.claudioheidel.repl.co/points/MetricName",
+					"raw": "https://time-object-db.claudioheidel.repl.co/metrics/MetricName",
 					"protocol": "https",
 					"host": [
 						"time-object-db",
@@ -123,7 +123,7 @@
 						"co"
 					],
 					"path": [
-						"points",
+						"metrics",
 						"MetricName"
 					]
 				}
@@ -136,7 +136,7 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "https://time-object-db.claudioheidel.repl.co/reset/MetricName",
+					"raw": "https://time-object-db.claudioheidel.repl.co/metrics/MetricName",
 					"protocol": "https",
 					"host": [
 						"time-object-db",
@@ -145,7 +145,7 @@
 						"co"
 					],
 					"path": [
-						"reset",
+						"metrics",
 						"MetricName"
 					]
 				}
