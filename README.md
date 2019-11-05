@@ -12,11 +12,13 @@ The main features of this DB are:
 
 ## Solution:
 
-I use single files splited in tree levels:
+timeObjectsDB use single files in order to persist the information splited in three levels:
 
-- Level 1: YYYY-MM
-- Level 2: DD
-- Level 3: One file each 5 minutes (configurable)
+- Level 1: YYYY-MM (Max 12 folders per year)
+- Level 2: DD (Max 365 folders per parent)
+- Level 3: One file each 5 minutes - (Max 144 files per parent) (configurable) 
+
+Exist an index file per each Level 2 folder, this index help to find existing Level 3 files and prevent to use a full-scan to find the existing files.
   
 ## Real time examples
 
