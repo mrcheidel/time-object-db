@@ -1,0 +1,157 @@
+{
+	"info": {
+		"_postman_id": "64f346f3-29ef-45f3-a0d8-912ced75449d",
+		"name": "timeObjectDB",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Find Objects",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "2361bbe9-ee83-4066-81a6-07c2a41c7a2e",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "1263e2e9-9bfe-4dac-9757-dbd9dfdf3c5d",
+						"exec": [
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://time-object-db.claudioheidel.repl.co/points/MetricName?fr=1572944094&to=1572944094",
+					"protocol": "https",
+					"host": [
+						"time-object-db",
+						"claudioheidel",
+						"repl",
+						"co"
+					],
+					"path": [
+						"points",
+						"MetricName"
+					],
+					"query": [
+						{
+							"key": "metric",
+							"value": "ClaudioHeidel",
+							"disabled": true
+						},
+						{
+							"key": "fr",
+							"value": "1572944094"
+						},
+						{
+							"key": "to",
+							"value": "1572944094"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Store Objects",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "30a8ad77-8914-4306-9c57-7643a7b3e5af",
+						"exec": [
+							"if (!pm.globals.get(\"fr-time\")){",
+							"    pm.globals.set(\"fr-time\",parseInt(new Date().getTime()/1000));",
+							"}",
+							"pm.globals.set(\"to-time\",parseInt(new Date().getTime()/1000));",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "b4fe0742-3b28-4a8d-a8ab-5391bd232635",
+						"exec": [
+							"pm.environment.set(\"tm\", parseInt(new Date().getTime()/1000));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n        \"firstName\": \"Claudio\",\n        \"lastName\": \"Heidel Schemberger\",\n        \"gender\": \"Male\",\n        \"department\": \"Architecture\",\n        \"currentCompany\": \"Cognizant\",\n        \"location\": \"Madrid\",\n        \"country\" : \"Spain\",\n        \"tm\": {{to-time}}\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://time-object-db.claudioheidel.repl.co/points/MetricName",
+					"protocol": "https",
+					"host": [
+						"time-object-db",
+						"claudioheidel",
+						"repl",
+						"co"
+					],
+					"path": [
+						"points",
+						"MetricName"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reset Metric",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "https://time-object-db.claudioheidel.repl.co/reset/MetricName",
+					"protocol": "https",
+					"host": [
+						"time-object-db",
+						"claudioheidel",
+						"repl",
+						"co"
+					],
+					"path": [
+						"reset",
+						"MetricName"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
