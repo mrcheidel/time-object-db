@@ -2,7 +2,7 @@
 
 Welcome to timeObjectsDB
 
-Objective:
+## Objective:
 
 Develop an file based DB in order to store any Objects type correlated to the epoc date time.
 The main features of this DB are:
@@ -10,12 +10,15 @@ The main features of this DB are:
 - Fetch metrics Objects from a windows time (betweeen fromEpoc and toEpoc)
 - Delete Objects from an specific metric.
 
-Solution:
+## Solution:
+
 I use single files splited in tree levels:
-Level 1: YYYY-MM
-Level 2: DD
-Level 3: One file each 5 minutes (configurable)
+
+- Level 1: YYYY-MM
+- Level 2: DD
+- Level 3: One file each 5 minutes (configurable)
   
+## Real time examples
 
 API Contract: https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract
 
