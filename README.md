@@ -6,4 +6,6 @@ API Contract: https://editor.swagger.io/?url=https://time-object-db.claudioheide
 
 Online Demo: https://time-object-db.claudioheidel.repl.co
 
+Author: Claudio Heidel Schemberger - https://www.linkedin.com/in/mrcheidel/
+
 
