@@ -8,10 +8,11 @@ author: Claudio Heidel Schemberger
 
 ## Objective:
 
-Develop a file based database in order to store any object type correlated to the epoc date time.
+The challenge was to create a database to store objects correlated over time for later use without the need to install and maintain exclusive services for this purpose. At the same time this database should be possible to use in cloud services such as the AWS Lamnda functions (high availability and auto scaling).
+
 The main features of the time-object-db are:
 - Store Objects into metrics.
-- Fetch metrics Objects from a windows time (betweeen fromEpoc and toEpoc)
+- Fetch metrics Objects from a windows time (betweeen fromEpoc and toEpoc).
 - Delete Objects from an specific metric.
 
 ### How to use - API Contract: 
@@ -46,6 +47,12 @@ timeObjectsDB use single files in order to persist the information splited in th
 
 Exist an index file per each Level 2 folder, this index help to find existing Level 3 files and prevent to use a full-scan to find the existing files.
   
+## TO-DO
+
+List of pending points
+
+- Implement the **checkIndex** like a health functionality with re-creation index option.
+
 ## Real time examples
 
 Online Demo: [Repl](https://time-object-db.claudioheidel.repl.co)
