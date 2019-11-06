@@ -15,15 +15,15 @@ This database may be used directly from node.js or via RESTful API calls.
 
 [View & Execute the API contract](https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract)
 
-<img src="https://github.com/mrcheidel/time-object-db/raw/master/doc/api-screen-shot-1.PNG" width="75%" height="75%">
+![](doc/doc/api-screen-shot-1.PNG)
 
 ### Postman Collection
 
-<img src="https://github.com/mrcheidel/time-object-db/raw/master/doc/post-example.png" width="75%" height="75%">
+![](doc/post-example.png)
 
-<img src="https://github.com/mrcheidel/time-object-db/raw/master/doc/get-example.PNG" width="75%" height="75%">
+![](doc/get-example.PNG)
 
-<img src="https://github.com/mrcheidel/time-object-db/raw/master/doc/delete-example.PNG" width="75%" height="75%">
+![](doc/delete-example.PNG)
 
 
 ## Solution:

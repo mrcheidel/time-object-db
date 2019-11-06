@@ -10,6 +10,7 @@ let debug = true;
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use('/doc', express.static(__dirname + '/doc'));
 
 app.use(function (error, req, res, next) {
   if (error instanceof SyntaxError) {
