@@ -1,18 +1,19 @@
-# time-object-db
 
-Welcome to timeObjectsDB
+# Welcome to time-object-db
 
 ## Objective:
 
-Develop an file based DB in order to store any Objects type correlated to the epoc date time.
-The main features of this DB are:
+Develop a file based database in order to store any object type correlated to the epoc date time.
+The main features of the time-object-db are:
 - Store Objects into metrics.
 - Fetch metrics Objects from a windows time (betweeen fromEpoc and toEpoc)
 - Delete Objects from an specific metric.
 
-### API Contract: 
+### How to use - API Contract: 
 
-https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract
+This database may be used directly from node.js or via RESTful API calls.
+
+[View & Execute the API contract](https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract)
 
 <img src="https://github.com/mrcheidel/time-object-db/raw/master/doc/api-screen-shot-1.PNG" width="75%" height="75%">
 
@@ -37,8 +38,10 @@ Exist an index file per each Level 2 folder, this index help to find existing Le
   
 ## Real time examples
 
-Online Demo: https://time-object-db.claudioheidel.repl.co
+Online Demo: [Repl](https://time-object-db.claudioheidel.repl.co)
 
-Author: Claudio Heidel Schemberger - https://www.linkedin.com/in/mrcheidel/
+Source Code: [Github]( https://github.com/mrcheidel/time-object-db)
+
+Author: Claudio Heidel Schemberger - [Linkedin](https://www.linkedin.com/in/mrcheidel/)
 
 

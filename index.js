@@ -11,13 +11,26 @@ let debug = true;
 app.use(cors());
 app.use(bodyParser.json());
 
+app.use(function (error, req, res, next) {
+  if (error instanceof SyntaxError) {
+    console.log (error);
+    res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR", error.type));
+  } else {
+    next();
+  }
+});
+
 app.get ('/',  function (req, res) {
-  let msg = "Welcome to timeObjectsDB<br>API Contract: <a href='https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract' target='_blank'>Swagger</a>";
-  res.status(200).send(msg);
+  var showdown  = require('showdown');
+  var fs = require("fs");
+  var str = fs.readFileSync("README.md", "utf8");
+  var converter = new showdown.Converter(),
+  html = converter.makeHtml(str)
+  res.status(200).send(html);
 });
 
 app.get ('/contract',  function (req, res) {
-  res.sendFile(__dirname + '/swagger.yaml');
+  res.sendFile(__dirname + '/doc/swagger.yaml');
 });
 
 app.delete ('/metrics/:metric',  function (req, res) {
