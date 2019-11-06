@@ -25,8 +25,9 @@ app.get ('/',  function (req, res) {
   var showdown  = require('showdown');
   var fs = require("fs");
   var str = fs.readFileSync("README.md", "utf8");
-  var converter = new showdown.Converter(),
-  html = converter.makeHtml(str)
+  var converter = new showdown.Converter({metadata: true});
+  converter.setOption('completeHTMLDocument', true);
+  var html = converter.makeHtml(str);
   res.status(200).send(html);
 });
 

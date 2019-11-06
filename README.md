@@ -1,3 +1,8 @@
+---
+title: Time Object Database
+author: Claudio Heidel Schemberger
+---
+<link rel="stylesheet" type="text/css" media="all" href="doc/style.css" />
 
 # Welcome to time-object-db
 
@@ -15,9 +20,14 @@ This database may be used directly from node.js or via RESTful API calls.
 
 [View & Execute the API contract](https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract)
 
-![](doc/doc/api-screen-shot-1.PNG)
+![](doc/api-screen-shot-1.PNG)
 
 ### Postman Collection
+
+You could be use the [Postman tool](https://www.getpostman.com/) in order to test this API.
+
+Find the [Postman collection and examples](https://github.com/mrcheidel/time-object-db/tree/master/test) that you could be import into the postman.
+
 
 ![](doc/post-example.png)
 
