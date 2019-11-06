@@ -6,7 +6,7 @@ const cors = require('cors');
 const objdb = new require('./lib/time-objects-db.js');
 const bodyParser = require('body-parser');
 
-let debug = true;
+let debug = false;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -37,9 +37,9 @@ app.get ('/contract',  function (req, res) {
 
 app.delete ('/metrics/:metric',  function (req, res) {
   let metric = req.params.metric;
-  var reg = new RegExp("^[a-zA-Z]+$");
+  var reg = new RegExp("^[0-9a-zA-Z-]+$");
   if (metric.length == 0 || !reg.test(metric)) {
-    res.status(400).send("The \"metric\" path parameter can't be empty and only could be contain a-zA-Z characters");
+    res.status(400).send("The \"metric\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
     return;
   }
   var tp = new objdb({"basepath": __dirname + "/data/"});
@@ -56,9 +56,9 @@ app.post ('/metrics/:metric',  function (req, res) {
     var metric = req.params.metric.trim();
     let tm = parseInt(new Date().getTime()/1000);
 
-    var reg = new RegExp("^[a-zA-Z]+$");
+    var reg = new RegExp("^[0-9a-zA-Z-]+$");
     if (metric.length == 0 || !reg.test(metric)) {
-      res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"metric\" path parameter can't be empty and only could be contain a-zA-Z characters"));
+      res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"metric\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters"));
       return;
     }
 
@@ -86,6 +86,7 @@ app.post ('/metrics/:metric',  function (req, res) {
           result.debug = data;
           result.stats= getStats(start);
         }
+
         res.status(201).send(result);
         if(debug) console.log ("New object for the metric " + metric + " has been created.");
     }).catch (error => {
@@ -107,9 +108,9 @@ app.get ('/metrics/:metric',  function (req, res) {
     let to     = req.query.to;
     let metric = req.params.metric.trim();
 
-    var reg = new RegExp("^[a-zA-Z]+$");
+    var reg = new RegExp("^[0-9a-zA-Z-]+$");
     if (metric.length == 0 || !reg.test(metric)) {
-      res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"metric\" path parameter can't be empty and only could be contain a-zA-Z characters"));
+      res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"metric\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters"));
       return;
     }
 
