@@ -15,7 +15,7 @@ schemes:
 tags:
   - name: Metrics
 paths:
-  '/metrics/{metricName}':
+  '/metrics/{metricId}':
     get:
       summary: Service to fetch the list of metrics values.
       description: This service fetches the list values in the metric in an time interval.
@@ -27,9 +27,9 @@ paths:
         - Metrics
       operationId: resourceListEnquiry
       parameters:
-        - name: metricName
+        - name: metricId
           in: path
-          description: Metric Name
+          description: Metric Identifier
           required: true
           type: string
         - name: fr
@@ -51,6 +51,10 @@ paths:
           description: Bad Request - If the resource is misspelled (badly constructed URI) / If the data in the request is not correct.
           schema:
             $ref: '#/definitions/400BadRequestError'
+        '404':
+          description: "Resource not found"
+          schema:
+            $ref: '#/definitions/404NotFoundError'
         '500':
           description: Internal Server Error - Use it as a General System Error.
           schema:
@@ -67,9 +71,9 @@ paths:
         - Metrics
       operationId: metricCreationEnquiry
       parameters:
-        - name: metricName
+        - name: metricId
           in: path
-          description: Metric Name
+          description: Metric Identifier
           required: true
           type: string
         - name: request
@@ -103,9 +107,9 @@ paths:
         - Metrics
       operationId: resourceDelete
       parameters:
-        - name: metricName
+        - name: metricId
           in: path
-          description: Metric Name
+          description: Metric Indentifier
           required: true
           type: string
 
@@ -116,6 +120,10 @@ paths:
           description: Bad Request - If the resource is misspelled (badly constructed URI) / If the data in the request is not correct.
           schema:
             $ref: '#/definitions/400BadRequestError'
+        '404':
+          description: "Resource not found"
+          schema:
+            $ref: '#/definitions/404NotFoundError'
         '500':
           description: Internal Server Error - Use it as a General System Error.
           schema:
@@ -218,6 +226,23 @@ definitions:
           description: Bad Request
           level: ERROR
           message: Invalid Request. Please, check the data in the request (QueryString Parameters and/or Body).
+          
+  404NotFoundError:
+    type: object
+    description: List of errors
+    properties:
+      errors:
+        type: array
+        description: Details of each of the errors
+        items:
+          $ref: '#/definitions/errorObject'
+    title: 404NotFoundError
+    example:
+      errors:
+        - code: 404
+          description: Resouce not found
+          level: ERROR
+          message: Resouce not found. Please, check the ResourceId specified.
 
   500InternalServerError:
     type: object

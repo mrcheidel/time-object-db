@@ -35,30 +35,38 @@ app.get ('/contract',  function (req, res) {
   res.sendFile(__dirname + '/doc/swagger.yaml');
 });
 
-app.delete ('/metrics/:metric',  function (req, res) {
-  let metric = req.params.metric;
+app.delete ('/metrics/:metricId',  function (req, res) {
+  let metric = req.params.metricId;
   var reg = new RegExp("^[0-9a-zA-Z-]+$");
   if (metric.length == 0 || !reg.test(metric)) {
-    res.status(400).send("The \"metric\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
+    res.status(400).send("The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
     return;
   }
   var tp = new objdb({"basepath": __dirname + "/data/"});
-  tp.reset(metric);
-  if(debug) console.log ("Metric " + metric + " has been deleted.");
-  res.status(204).send();
+  tp.delete(metric).then(data => {
+    if(debug) console.log ("Metric " + metric + " has been deleted.");
+    res.status(204).send();
+  }).catch (error => {
+    if(error.msg == "metric-not-exist") {
+      res.status(404).send(newErrorObject ("404", "Metric doesn't exist", "ERROR",""));
+    } else {
+      console.log (error);
+      res.status(500).send(newErrorObject ("500", "Internal Server Error", "ERROR",""));
+    }
+  });
 });
 
-app.post ('/metrics/:metric',  function (req, res) {
+app.post ('/metrics/:metricId',  function (req, res) {
   let result = {};
   try {
     let start = new Date();
     var obj = req.body;
-    var metric = req.params.metric.trim();
+    var metric = req.params.metricId.trim();
     let tm = parseInt(new Date().getTime()/1000);
 
     var reg = new RegExp("^[0-9a-zA-Z-]+$");
     if (metric.length == 0 || !reg.test(metric)) {
-      res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"metric\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters"));
+      res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters"));
       return;
     }
 
@@ -100,17 +108,17 @@ app.post ('/metrics/:metric',  function (req, res) {
   } 
 });
 
-app.get ('/metrics/:metric',  function (req, res) {
+app.get ('/metrics/:metricId',  function (req, res) {
   let result = {};
   try {
     let start = new Date();
     let fr     = req.query.fr;
     let to     = req.query.to;
-    let metric = req.params.metric.trim();
+    let metric = req.params.metricId.trim();
 
     var reg = new RegExp("^[0-9a-zA-Z-]+$");
     if (metric.length == 0 || !reg.test(metric)) {
-      res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"metric\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters"));
+      res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters"));
       return;
     }
 
@@ -138,8 +146,12 @@ app.get ('/metrics/:metric',  function (req, res) {
         res.status(200).send(result);
         if(debug) console.log ("New search on the metric " + metric + " as been executed [fr= "+ fr +" & to=" + to +"].");
     }).catch (error => {
-      console.log (error);
-      res.status(500).send(newErrorObject ("500", "Internal Server Error", "ERROR",""));
+      if(error.msg == "metric-not-exist") {
+        res.status(404).send(newErrorObject ("404", "Metric doesn't exist", "ERROR",""));
+      } else {
+        console.log (error);
+        res.status(500).send(newErrorObject ("500", "Internal Server Error", "ERROR",""));
+      }
     });
   } catch (e) {
     console.log (e);
