@@ -31,7 +31,7 @@ This database may be used directly from your own node.js code or via RESTful API
 
 [View & Execute the API contract](https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract)
 
-![](doc/api-screen-shot-1.PNG)
+![](doc/titulo.png)
 
 ### Postman Collection
 

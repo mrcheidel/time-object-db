@@ -172,12 +172,18 @@ definitions:
       firstName: Claudio
       lastName: Heidel Schemberger
       gender: Male
-      department: Architecture
-      currentCompany: Cognizant
       location: Madrid
       country: Spain
-      tm: 1572950430
-      
+      sports:
+        - biking
+        - paragliding
+        - climbing
+        - running
+        - hiking
+      tm: 1572988888
+      lat: -3.6857917
+      lon: 40.444749
+
   metricCreationResponse:
     type: object
     description: Resource identifier and link to the details of the resource that has just been created.
