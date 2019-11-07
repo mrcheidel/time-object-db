@@ -2,7 +2,11 @@ swagger: "2.0"
 info:
   title: Time Object DB
   version: 1.0.0
-  description: Time Object DB API Contract
+  description: '<b>Time Object DB API Contract</b> <br>
+  Swagger Contract that describe the use of this database'
+  contact:
+    name: Claudio Heidel Schemberger
+    url: 'https://time-object-db.claudioheidel.repl.co'
 
 host: 'time-object-db.claudioheidel.repl.co'
 basePath: /

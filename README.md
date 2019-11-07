@@ -6,18 +6,28 @@ author: Claudio Heidel Schemberger
 
 # Welcome to time-object-db
 
-## Objective:
+## Challenge:
 
-The challenge was to create a database to store objects correlated over time for later use without the need to install and maintain exclusive services for this purpose. At the same time this database should be possible to use in cloud services such as the AWS Lamnda functions (high availability and auto scaling).
+The challenge was to create a persistence system to store objects correlated with the date-time for later use without the need to install and maintain an exclusive service (external databases).
+
+This persistence system need to have a quickly search feature, for this reason we use binary tree and cascading indexes.
+
+At the same time this solution should be easy to deploy in cloud services such as the AWS Lambda functions (high availability and auto scaling).
 
 The main features of the time-object-db are:
 - Store Objects into metrics.
-- Fetch metrics Objects from a windows time (betweeen fromEpoc and toEpoc).
+- Fetch metrics Objects from a windows time (between  fromEpoc and toEpoc).
 - Delete Objects from an specific metric.
+
+### Development notes:
+
+time-object-db is developed using only **[node.js](https://nodejs.org/)**
+
+I'm developing this project in my free time from different places. For this reason, I use **[Repl.it](https://repl.it/)**, an online coding platform that allows me continue working regardless where I'm.
 
 ### How to use - API Contract: 
 
-This database may be used directly from node.js or via RESTful API calls.
+This database may be used directly from your own node.js code or via RESTful API calls.
 
 [View & Execute the API contract](https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract)
 
@@ -39,15 +49,15 @@ Find the [Postman collection and examples](https://github.com/mrcheidel/time-obj
 
 ## Solution:
 
-timeObjectsDB use single files in order to persist the information splited in three levels:
+time-object-db use single files in order to persist the information splitted in three levels:
 
 - Level 1: YYYY-MM (Max 12 folders per year)
 - Level 2: DD (Max 365 folders per parent)
 - Level 3: One file each 5 minutes - (Max 144 files per parent) (configurable) 
 
-Exist an index file per each Level 2 folder, this index help to find existing Level 3 files and prevent to use a full-scan to find the existing files.
+Exist an index file per each Level 1 and 2 folders, these indexes help to find existing Level 3 files and prevent to use a full-scan to find the existing files.
   
-## TO-DO
+## Todo
 
 List of pending points
 
