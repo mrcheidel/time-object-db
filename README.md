@@ -71,4 +71,3 @@ Source Code: [Github]( https://github.com/mrcheidel/time-object-db)
 
 Author: Claudio Heidel Schemberger - [Linkedin](https://www.linkedin.com/in/mrcheidel/)
 
-

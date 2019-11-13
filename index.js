@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 
 let debug = false;
 
+app.disable('x-powered-by');
 app.use(cors());
 app.use(bodyParser.json());
 app.use('/doc', express.static(__dirname + '/doc'));
@@ -135,7 +136,8 @@ app.get ('/metrics/:metricId',  function (req, res) {
     let tp = new objdb({
       "basepath": __dirname + "/data/",
       "period": 600,
-      "limit": 300}
+      "limit": 300
+      }
     );
 
     fr     = parseInt(fr);
