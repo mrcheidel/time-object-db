@@ -2,10 +2,14 @@
   "main": "index.js",
   "author": "Claudio Heidel Schemberger",
   "name": "time-object-db",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "repository": {
-      "type": "git",
-      "url": "https://github.com/mrcheidel/time-object-db.git"
+    "type": "git",
+    "url": "https://github.com/mrcheidel/time-object-db.git"
+  },
+  "engines": {
+    "node": ">=10.12.0",
+    "npm": ">=6.0.0"
   },
   "dependencies": {
     "binary-search-tree": "^0.2.6",

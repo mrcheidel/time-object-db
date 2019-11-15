@@ -15,9 +15,10 @@ This persistence system need to have a quickly search feature, for this reason w
 At the same time this solution should be easy to deploy in cloud services such as the AWS Lambda functions (high availability and auto scaling).
 
 The main features of the time-object-db are:
-- Store Objects into metrics.
-- Fetch metrics Objects from a windows time (between  fromEpoc and toEpoc).
-- Delete Objects from an specific metric.
+- Create metrics collections and store objects.
+- Fetch metric objects from a period time (between fromEpoc and toEpoc).
+- Delete metric objects from a specific time value.
+- Complete clean a metrid collection
 
 ### Development notes:
 

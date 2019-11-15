@@ -5,17 +5,16 @@ const fs = require('fs');
 const path = require('path');
 
 function timeObjectDB (options) {
-  this.basepath = path.resolve(options.basepath || __dirname + "/data") + "/" ;
+  this.basepath = options.basepath || __dirname + "/data/";
   this.period = options.period || 600;
   this.limit = options.limit || 300;
   this.ext = ".dat";
-  this.indexname = "index.dat";
 }
 
 timeObjectDB.prototype.getFirstLast = function (metric){
   var result = {"min":null, "max":null};
   return new Promise((resolve, reject) => {
-      readData(this.basepath + metric + "/index" + this.ext).then (data => {
+      readData(this.basepath + metric + "/index.dat").then (data => {
         let mainIndex = new AVLTree();
         data.forEach(item => {
           mainIndex.insert(item._tm, item._data);
@@ -95,7 +94,7 @@ timeObjectDB.prototype.read = function (metric,  fromEpoc, toEpoc){
   return new Promise((resolve, reject) => {
     try {
       if (!this.metricExist(metric)){
-        result.msg = "404";
+        result.msg = "metric-not-exist";
         reject (result) ;
       }
 
@@ -115,12 +114,7 @@ timeObjectDB.prototype.read = function (metric,  fromEpoc, toEpoc){
           let bst = new AVLTree();
           tmp.forEach(item => {
             if (item._tm && item._data) {
-               if (item._a=="I"){
-               	 bst.insert(item._tm, item._data);
-               } 
-               if (item._a=="D"){
-               	 bst.delete(item._tm);
-               } 
+                bst.insert(item._tm, item._data);
             }
           });
           result.data = bst.betweenBounds({ $lte: toEpoc, $gte: fromEpoc}).slice(0, this.limit);
@@ -147,68 +141,39 @@ timeObjectDB.prototype.read = function (metric,  fromEpoc, toEpoc){
   });
 }
 
-timeObjectDB.prototype.insert =  function (metricId, tm, data) {
-  return this.write (metricId, tm, data, "I");
-}
-
-timeObjectDB.prototype.delete =  function (metricId, tm) {
-  result = {};
-  return new Promise((resolve, reject) => {
-	this.read(metricId,tm,tm).then(data => {
-		if(data.data.length > 0){
-			resolve (this.write (metricId, tm, {}, "D"));
-		} else {
-      		result.msg = "404";
-      		reject (result) ;
-		}
-	}).catch (err => {
-		reject(err);
-	})
-  });
-}
-
-
-/*
-action -> I=Insert - D=delete
-*/
-timeObjectDB.prototype.write =  function (metricId, tm, data, action) {
+timeObjectDB.prototype.write =  function (metric, tm, data) {
   return new Promise((resolve, reject) => {
     try {
       if (isNaN(tm)) reject ("500.1");  
-      let fp = this.getPathFromEpoc(metricId, tm);
-      let _idata = {"_tm":tm,"_a": action, "_data":data};
+      let fp = this.getPathFromEpoc(metric, tm);
+      let _idata = {"_tm":tm, "_data":data};
       let _data = JSON.stringify(_idata) + "\n";
       let _file = fp.path + fp.file;
 
-      if (!fs.existsSync(fp.path)) { 
-      	try {
-      		fs.mkdirSync(fp.path, { recursive: true });
-      	} catch (err){
-      	    reject (err);  
-      	}
-      }
-      this.updateIndex(metricId, _file, fp).then(result => {
-      fs.appendFile(_file, _data, (err) => {
-        if (err) reject (err);  
-        resolve ( "201");
-        //resolve ( "The file " + _file + " has been saved!");
+      if (!fs.existsSync(fp.path)) { fs.mkdirSync(fp.path, { recursive: true });}
+      this.updateIndex(metric, _file, fp).then(result => {
+        fs.appendFile(_file, _data, (err) => {
+          if (err) reject (err);  
+          resolve ( "The file " + _file + " has been saved!");
+        });
+      }).catch( error => { 
+        reject (error);
       });
-      }).catch( error => { reject (error);});
     } catch (e){
       reject (e);  
     }
   });
 }
 
-timeObjectDB.prototype.metricExist = function(metricId){
-  return fs.existsSync(this.basepath + metricId);
+timeObjectDB.prototype.metricExist = function(metric){
+  return fs.existsSync(this.basepath + metric);
 }
 
 timeObjectDB.prototype.getPathFromEpoc = function  (metric, epoc) {
   let res = {"path":null, "file":null, "l1":null, "l2":null, "l3":null};
   try {
-    if (isNaN(epoc)) return path;
-    if (epoc > 253402300799) return path; // max 9990-12-31T23:59:59
+    if (isNaN(epoc)) return res;
+    if (epoc > 253402300799) return res; // max 9990-12-31T23:59:59
     var d = new Date( epoc * 1000);
 
     var l1 = this.getL1(d);
@@ -233,17 +198,17 @@ timeObjectDB.prototype.checkIndex = function (_BRecreate){
   // Verify if the index is aligned and Recreate it if is necesary
 }
 
-timeObjectDB.prototype.clear = function (_metric){
+timeObjectDB.prototype.delete = function (_metric){
   result = {};
   return new Promise((resolve, reject) => {
     if (!this.metricExist(_metric)){
-      result.msg = "404";
+      result.msg = "metric-not-exist";
       reject (result) ;
     }
 
     const fs2 = require('fs-extra');
     fs2.removeSync(this.basepath + "/" + _metric);
-    resolve("204");
+    resolve();
   });
 }
 
@@ -253,7 +218,7 @@ timeObjectDB.prototype.getIndexes = function (_metric,  fromEpoc, toEpoc) {
     var frDate = new Date(fromEpoc * 1000);
     var toDate = new Date(toEpoc * 1000);
     while (this.getL1(frDate) <= this.getL1(toDate)) {
-      ap.push (readData(this.basepath + _metric + "/" + this.getL1(frDate) + "/" + this.indexname));
+      ap.push (readData(this.basepath + _metric + "/" + this.getL1(frDate) + "/index.dat"));
       frDate = new Date(frDate.setMonth(frDate.getMonth() + 1));
     }
 
@@ -270,31 +235,29 @@ timeObjectDB.prototype.getIndexes = function (_metric,  fromEpoc, toEpoc) {
 timeObjectDB.prototype.updateIndex = function (_metric, _file, _data) {
   return new Promise((resolve, reject) => {
     if (!fs.existsSync(_file)) {
-      let newEntry = this.basepath + _metric + "/" + _data.l1 + "/" + this.indexname;
+      let newEntry = this.basepath + _metric + "/" + _data.l1 + "/index.dat";
       if (!fs.existsSync(newEntry)) {
         let tm = parseInt(new Date(_data.l1 + '-01').getTime()/1000);
         let data = {"index": newEntry};
         fs.appendFile(
-          this.basepath + _metric + "/" + this.indexname,
+          this.basepath + _metric + "/index.dat",
           JSON.stringify({"_tm":tm, "_data":data}) + "\n",
           (err) => {
             if (err) reject (err);
             fs.appendFile(newEntry, JSON.stringify({"_tm":_data.l3, "_data":_data}) + "\n", (err) => {
               if (err) reject (err);
-              resolve("201");
-              //resolve("The file " + this.basepath + _metric + "/index.dat" + " has been updated!");
+              resolve("The file " + this.basepath + _metric + "/index.dat" + " has been updated!");
             });
           }
         );
       } else {
         fs.appendFile(newEntry, JSON.stringify({"_tm":_data.l3, "_data":_data}) + "\n", (err) => {
           if (err) reject (err);
-          resolve("201");
-          //resolve("The file " + this.basepath + _metric + "/index.dat" + " has been updated!");
+          resolve("The file " + this.basepath + _metric + "/index.dat" + " has been updated!");
         });
       }
     } else {
-      resolve("200");
+      resolve("Index exist");
   }
   });
 };

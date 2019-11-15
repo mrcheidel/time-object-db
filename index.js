@@ -36,7 +36,7 @@ app.get ('/contract',  function (req, res) {
   res.sendFile(__dirname + '/doc/swagger.yaml');
 });
 
-app.delete ('/metrics/:metricId',  function (req, res) {
+app.delete ('/metrics/:metricId/clear',  function (req, res) {
   let metric = req.params.metricId;
   var reg = new RegExp("^[0-9a-zA-Z-]+$");
   if (metric.length == 0 || !reg.test(metric)) {
@@ -44,11 +44,11 @@ app.delete ('/metrics/:metricId',  function (req, res) {
     return;
   }
   var tp = new objdb({"basepath": __dirname + "/data/"});
-  tp.delete(metric).then(data => {
+  tp.clear(metric).then(data => {
     if(debug) console.log ("Metric " + metric + " has been deleted.");
     res.status(204).send();
   }).catch (error => {
-    if(error.msg == "metric-not-exist") {
+    if(error.msg == "404") {
       res.status(404).send(newErrorObject ("404", "Metric doesn't exist", "ERROR",""));
     } else {
       console.log (error);
@@ -56,6 +56,38 @@ app.delete ('/metrics/:metricId',  function (req, res) {
     }
   });
 });
+
+app.delete ('/metrics/:metricId',  function (req, res) {
+  let metric = req.params.metricId;
+  let tm     = req.query.tm;
+  
+  var reg = new RegExp("^[0-9a-zA-Z-]+$");
+  if (metric.length == 0 || !reg.test(metric)) {
+    res.status(400).send("The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
+    return;
+  }
+  
+  if (isNaN(tm)) {
+    res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"tm\" query parameter need to be a epoc datetime number"));
+    return;
+  }
+  
+  tm = parseInt(tm);
+  var tp = new objdb({"basepath": __dirname + "/data/"});
+  tp.delete(metric, tm).then(data => {
+    if(debug) console.log ("Metric " + metric + " value = " + tm + " has been deleted.");
+    res.status(204).send();
+  }).catch (error => {
+    if(error.msg == "404") {
+      res.status(404).send(newErrorObject ("404", "Metric-Value doesn't exist", "ERROR",""));
+    } else {
+      console.log (error);
+      res.status(500).send(newErrorObject ("500", "Internal Server Error", "ERROR",""));
+    }
+  });
+});
+
+
 
 app.post ('/metrics/:metricId',  function (req, res) {
   let result = {};
@@ -89,7 +121,7 @@ app.post ('/metrics/:metricId',  function (req, res) {
       "limit": 300}
     );
 
-    tp.write (metric, tm, obj).then(data  => {
+    tp.insert (metric, tm, obj).then(data  => {
         result.data = req.body;
         if (debug) {
           result.debug = data;
@@ -148,7 +180,7 @@ app.get ('/metrics/:metricId',  function (req, res) {
         res.status(200).send(result);
         if(debug) console.log ("New search on the metric " + metric + " as been executed [fr= "+ fr +" & to=" + to +"].");
     }).catch (error => {
-      if(error.msg == "metric-not-exist") {
+      if(error.msg == "404") {
         res.status(404).send(newErrorObject ("404", "Metric doesn't exist", "ERROR",""));
       } else {
         console.log (error);
@@ -174,7 +206,7 @@ function getStats(startTime){
   return stats;
 }
 
-var server = app.listen(null, function () {
+var server = app.listen(8000, function () {
    console.log ("Server Running on port " + server.address().port);
 })
 

@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "64f346f3-29ef-45f3-a0d8-912ced75449d",
-		"name": "timeObjectDB",
+		"_postman_id": "c1dd9a98-330a-4a9c-ade9-8178967fdc5e",
+		"name": "Time Object DB",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -186,12 +186,12 @@
 			"response": []
 		},
 		{
-			"name": "Reset Metric",
+			"name": "Delete Metric Value",
 			"request": {
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "https://time-object-db.claudioheidel.repl.co/metrics/mrcheidel",
+					"raw": "https://time-object-db.claudioheidel.repl.co/metrics/metricId1?tm=1573720010",
 					"protocol": "https",
 					"host": [
 						"time-object-db",
@@ -201,7 +201,33 @@
 					],
 					"path": [
 						"metrics",
-						"mrcheidel"
+						"metricId1"
+					],
+					"query": [
+						{
+							"key": "tm",
+							"value": "1573720010"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Clear Metric",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/metrics/metricId1/clear",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"metrics",
+						"metricId1",
+						"clear"
 					]
 				}
 			},
