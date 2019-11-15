@@ -36,7 +36,7 @@ app.get ('/contract',  function (req, res) {
   res.sendFile(__dirname + '/doc/swagger.yaml');
 });
 
-app.delete ('/metrics/:metricId/clear',  function (req, res) {
+app.delete ('/metrics/:metricId',  function (req, res) {
   let metric = req.params.metricId;
   var reg = new RegExp("^[0-9a-zA-Z-]+$");
   if (metric.length == 0 || !reg.test(metric)) {
@@ -57,9 +57,9 @@ app.delete ('/metrics/:metricId/clear',  function (req, res) {
   });
 });
 
-app.delete ('/metrics/:metricId',  function (req, res) {
+app.delete ('/metrics/:metricId/object/:objectId',  function (req, res) {
   let metric = req.params.metricId;
-  let tm     = req.query.tm;
+  let objectId = req.params.objectId;
   
   var reg = new RegExp("^[0-9a-zA-Z-]+$");
   if (metric.length == 0 || !reg.test(metric)) {
@@ -67,14 +67,14 @@ app.delete ('/metrics/:metricId',  function (req, res) {
     return;
   }
   
-  if (isNaN(tm)) {
+  if (isNaN(objectId)) {
     res.status(400).send(newErrorObject ("400", "Bad Request", "ERROR","The \"tm\" query parameter need to be a epoc datetime number"));
     return;
   }
   
-  tm = parseInt(tm);
+  objectId = parseInt(objectId);
   var tp = new objdb({"basepath": __dirname + "/data/"});
-  tp.delete(metric, tm).then(data => {
+  tp.delete(metric, objectId).then(data => {
     if(debug) console.log ("Metric " + metric + " value = " + tm + " has been deleted.");
     res.status(204).send();
   }).catch (error => {
@@ -87,9 +87,7 @@ app.delete ('/metrics/:metricId',  function (req, res) {
   });
 });
 
-
-
-app.post ('/metrics/:metricId',  function (req, res) {
+app.post ('/metrics/:metricId/objects',  function (req, res) {
   let result = {};
   try {
     let start = new Date();
@@ -141,7 +139,7 @@ app.post ('/metrics/:metricId',  function (req, res) {
   } 
 });
 
-app.get ('/metrics/:metricId',  function (req, res) {
+app.get ('/metrics/:metricId/objects',  function (req, res) {
   let result = {};
   try {
     let start = new Date();
