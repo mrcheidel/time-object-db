@@ -26,6 +26,19 @@ time-object-db is developed using only **[node.js](https://nodejs.org/)**
 
 I'm developing this project in my free time from different places. For this reason, I use **[Repl.it](https://repl.it/)**, an online coding platform that allows me continue working regardless where I'm.
 
+### How to install
+
+
+```bash
+mkdir test-folder
+cd test-folder
+git clone https://github.com/mrcheidel/time-object-db.git
+cd time-object-db
+npm install
+node index.js
+```
+
+
 ### How to use - API Contract: 
 
 This database may be used directly from your own node.js code or via RESTful API calls.
