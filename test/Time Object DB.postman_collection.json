@@ -34,7 +34,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://time-object-db.claudioheidel.repl.co/metrics/mrcheidel?to=1572968552&fr=1572968531",
+					"raw": "https://time-object-db.claudioheidel.repl.co/metrics/mrcheidel/objects?to=1572968696&fr=1572968696",
 					"protocol": "https",
 					"host": [
 						"time-object-db",
@@ -44,7 +44,8 @@
 					],
 					"path": [
 						"metrics",
-						"mrcheidel"
+						"mrcheidel",
+						"objects"
 					],
 					"query": [
 						{
@@ -54,11 +55,11 @@
 						},
 						{
 							"key": "to",
-							"value": "1572968552"
+							"value": "1572968696"
 						},
 						{
 							"key": "fr",
-							"value": "1572968531"
+							"value": "1572968696"
 						}
 					]
 				}
@@ -109,7 +110,7 @@
 					}
 				},
 				"url": {
-					"raw": "https://time-object-db.claudioheidel.repl.co/metrics/mrcheidel",
+					"raw": "https://time-object-db.claudioheidel.repl.co/metrics/mrcheidel/objects",
 					"protocol": "https",
 					"host": [
 						"time-object-db",
@@ -119,7 +120,8 @@
 					],
 					"path": [
 						"metrics",
-						"mrcheidel"
+						"mrcheidel",
+						"objects"
 					]
 				}
 			},
@@ -169,7 +171,7 @@
 					}
 				},
 				"url": {
-					"raw": "https://time-object-db.claudioheidel.repl.co/metrics/mrcheidel",
+					"raw": "https://time-object-db.claudioheidel.repl.co/metrics/mrcheidel/objects",
 					"protocol": "https",
 					"host": [
 						"time-object-db",
@@ -179,7 +181,8 @@
 					],
 					"path": [
 						"metrics",
-						"mrcheidel"
+						"mrcheidel",
+						"objects"
 					]
 				}
 			},
@@ -191,7 +194,7 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "https://time-object-db.claudioheidel.repl.co/metrics/metricId1?tm=1573720010",
+					"raw": "https://time-object-db.claudioheidel.repl.co/metrics/mrcheidel/object/1572968696",
 					"protocol": "https",
 					"host": [
 						"time-object-db",
@@ -201,13 +204,9 @@
 					],
 					"path": [
 						"metrics",
-						"metricId1"
-					],
-					"query": [
-						{
-							"key": "tm",
-							"value": "1573720010"
-						}
+						"mrcheidel",
+						"object",
+						"1572968696"
 					]
 				}
 			},
@@ -219,15 +218,17 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "localhost:8000/metrics/metricId1/clear",
+					"raw": "https://time-object-db.claudioheidel.repl.co/metrics/mrcheidel",
+					"protocol": "https",
 					"host": [
-						"localhost"
+						"time-object-db",
+						"claudioheidel",
+						"repl",
+						"co"
 					],
-					"port": "8000",
 					"path": [
 						"metrics",
-						"metricId1",
-						"clear"
+						"mrcheidel"
 					]
 				}
 			},
