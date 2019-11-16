@@ -18,7 +18,7 @@ The main features of the time-object-db are:
 - Create metrics collections and store objects.
 - Fetch metric objects from a period time (between fromEpoc and toEpoc).
 - Delete metric objects from a specific time value.
-- Complete clean a metrid collection
+- Complete clean a metric collection
 
 ### Development notes:
 
