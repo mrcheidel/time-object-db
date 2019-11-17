@@ -7,12 +7,44 @@ const objdb = require('./lib/time-objects-db.js');
 const bodyParser = require('body-parser');
 
 let debug = true;
+let tp = new objdb({"basepath": __dirname + "/data/"});
+
+var oninsert = function (metricId, tm, data) {
+   console.log("insert event fired");
+   console.log("metric: " + metricId);
+   console.log("tm: " + tm);
+   console.log(data);
+}
+
+var ondelete = function (metricId, tm) {
+   console.log("delete event fired");
+   console.log("metric: " + metricId);
+   console.log("tm: " + tm);
+}
+
+var onindex = function (indexfile) {
+   console.log("Index has been updated: " + indexfile);
+}
+
+var onclear = function (metric) {
+   console.log("Metric deleted : " + metric);
+}
+
+var onread = function (metric, fr, to) {
+   console.log("New search on the " + metric + " as been executed");
+   console.log("[fr: " + fr + ", to: " + to + "]");
+}
+
+tp.events.on('insert', oninsert);
+tp.events.on('delete', ondelete);
+tp.events.on('index', onindex);
+tp.events.on('clear', onclear);
+tp.events.on('read', onread);
 
 app.disable('x-powered-by');
 app.use(cors());
 app.use(bodyParser.json());
 app.use('/doc', express.static(__dirname + '/doc'));
-
 app.use(function(error, req, res, next) {
   if (error instanceof SyntaxError) {
     console.log(error);
@@ -45,11 +77,8 @@ app.delete('/metrics/:metricId', function(req, res) {
     res.status(400).send("The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
     return;
   }
-  var tp = new objdb({
-    "basepath": __dirname + "/data/"
-  });
+
   tp.clear(metric).then(data => {
-    if (debug) console.log("Metric " + metric + " has been deleted.");
     res.status(204).send();
   }).catch(error => {
     if (error.msg == "404") {
@@ -77,11 +106,7 @@ app.delete('/metrics/:metricId/object/:objectId', function(req, res) {
   }
 
   objectId = parseInt(objectId);
-  var tp = new objdb({
-    "basepath": __dirname + "/data/"
-  });
   tp.delete(metric, objectId).then(data => {
-    if (debug) console.log("Metric " + metric + " value = " + objectId + " has been deleted.");
     res.status(204).send();
   }).catch(error => {
     if (error.msg == "404") {
@@ -121,12 +146,6 @@ app.post('/metrics/:metricId/objects', function(req, res) {
       tm = obj.tm;
     }
 
-    var tp = new objdb({
-      "basepath": __dirname + "/data/",
-      "period": 600,
-      "limit": 300
-    });
-
     tp.insert(metric, tm, obj).then(data => {
       result.data = req.body;
       if (debug) {
@@ -135,7 +154,6 @@ app.post('/metrics/:metricId/objects', function(req, res) {
       }
 
       res.status(201).send(result);
-      if (debug) console.log("New object for the metric " + metric + " has been created.");
     }).catch(error => {
       console.log(error);
       res.status(500).send(newErrorObject("500", "Internal Server Error", "ERROR", ""));
@@ -171,19 +189,12 @@ app.get('/metrics/:metricId/objects', function(req, res) {
       return;
     }
 
-    let tp = new objdb({
-      "basepath": __dirname + "/data/",
-      "period": 600,
-      "limit": 300
-    });
-
     fr = parseInt(fr);
     to = parseInt(to);
 
     tp.read(metric, fr, to).then(result => {
       if (debug) result.stats = getStats(start);
       res.status(200).send(result);
-      if (debug) console.log("New search on the metric " + metric + " as been executed [fr= " + fr + " & to=" + to + "].");
     }).catch(error => {
       if (error.msg == "404") {
         res.status(404).send(newErrorObject("404", "Metric doesn't exist", "ERROR", ""));
@@ -206,7 +217,7 @@ function getStats(hrstart) {
     stats.memoryUsage[key] = Math.round(value / 1024 / 1024 * 100) / 100 + ' MB';
   }
   var hrend = process.hrtime(hrstart);
-  stats.executionTime = (parseInt(hrend[1] / 1000000)) + " ms";
+  stats.executionTime = hrend[0] + "." + (parseInt(hrend[1] / 1000000)) + " s";
   return stats;
 }
 

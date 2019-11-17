@@ -4,7 +4,9 @@ author: Claudio Heidel Schemberger
 ---
 <link rel="stylesheet" type="text/css" media="all" href="doc/style.css" />
 
-# Welcome to time-object-db
+# Welcome to time-object-db 
+
+Current version: 1.0.4
 
 ## Challenge:
 
@@ -19,6 +21,15 @@ The main features of the time-object-db are:
 - Fetch metric objects from a period time (between fromEpoc and toEpoc).
 - Delete metric objects from a specific time value.
 - Complete clean a metric collection
+
+This database emit 5 events
+
+- insert => When a new object is inserted
+- delete => When a object has been deleted
+- index => When a index is updated or created
+- clear => When a metric is deleted
+- read => When a new query has been executed.
+
 
 ### Development notes:
 
