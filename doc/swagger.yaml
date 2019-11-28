@@ -1,7 +1,7 @@
 swagger: "2.0"
 info:
   title: Time Object DB
-  version: 1.0.0
+  version: 1.0.5
   description: '<b>Time Object DB API Contract</b> <br>
   Swagger Contract that describe the use of this database'
   contact:
@@ -15,10 +15,10 @@ schemes:
 tags:
   - name: Metrics
 paths:
-  '/metrics/{metricId}':
+  '/metrics/{metricId}/objects':
     get:
-      summary: Service to fetch the list of metrics values.
-      description: This service fetches the list values in the metric in an time interval.
+      summary: Service to fetch the list of metrics objects.
+      description: This service fetches the list objects in the metric in an time interval.
       consumes:
         - application/json
       produces:
@@ -61,7 +61,7 @@ paths:
             $ref: '#/definitions/500InternalServerError'
 
     post:
-      summary: Service to create a new metric value .
+      summary: Service to create a new metric (if not exist) and a new object.
       description: This service creates a new value in the metrics collection. The payload in the request body must contain all the mandatory attributes defined for the Resource object (Bussiness Data Schema). The response will contain the resource identifier and the link to retrieve the complete details of the resource.
       consumes:
         - application/json
@@ -76,6 +76,7 @@ paths:
           description: Metric Identifier
           required: true
           type: string
+          
         - name: request
           in: body
           description: Object to be inserted into the DB
@@ -95,10 +96,80 @@ paths:
           description: Internal Server Error - Use it as a General System Error.
           schema:
             $ref: '#/definitions/500InternalServerError'
+            
+  '/metrics/{metricId}/events':
+    get:
+      summary: Service Sent Event Listener 
+      description: Service Sent Event Listener
+      consumes:
+        - application/json
+      produces:
+        - text/event-stream
+      tags:
+        - Metrics
+      operationId: resourceListenerEnquiry
+      parameters:
+        - name: metricId
+          in: path
+          description: Metric Identifier
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Created - The resource was created successfully and its identifier and link to the details are included in the body of the response.
+          schema:
+            $ref: '#/definitions/metricListenerResponse'
 
+        '400':
+          description: Bad Request - If the resource is misspelled (badly constructed URI) / If the data in the request is not correct.
+          schema:
+            $ref: '#/definitions/400BadRequestError'
+        '404':
+          description: "Resource not found"
+          schema:
+            $ref: '#/definitions/404NotFoundError'
+        '500':
+          description: Internal Server Error - Use it as a General System Error.
+          schema:
+            $ref: '#/definitions/500InternalServerError'
+
+  '/metrics/{metricId}':
     delete:
-      summary: Service to delete a metric from the collection.
-      description: This service delete an specific metric from the metrics.
+      summary: Service to delete an complete metricId collection.
+      description: Service to clear an complete metricId collection.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Metrics
+      operationId: metricDelete
+      parameters:
+        - name: metricId
+          in: path
+          description: Metric Indentifier
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Created - The resource was created successfully and its identifier and link to the details are included in the body of the response.
+        '400':
+          description: Bad Request - If the resource is misspelled (badly constructed URI) / If the data in the request is not correct.
+          schema:
+            $ref: '#/definitions/400BadRequestError'
+        '404':
+          description: "Resource not found"
+          schema:
+            $ref: '#/definitions/404NotFoundError'
+        '500':
+          description: Internal Server Error - Use it as a General System Error.
+          schema:
+            $ref: '#/definitions/500InternalServerError' 
+            
+  '/metrics/{metricId}/object/{objectId}':
+    delete:
+      summary: Service to delete an object from the metricId collection.
+      description: Service to delete an object from the metricId collection.
       consumes:
         - application/json
       produces:
@@ -112,7 +183,11 @@ paths:
           description: Metric Indentifier
           required: true
           type: string
-
+        - name: objectId
+          in: path
+          description: 'Value Epoc datetime to be deleted. Example: 1572949522'
+          required: true
+          type: number
       responses:
         '204':
           description: Created - The resource was created successfully and its identifier and link to the details are included in the body of the response.
@@ -128,8 +203,14 @@ paths:
           description: Internal Server Error - Use it as a General System Error.
           schema:
             $ref: '#/definitions/500InternalServerError'
-
+            
 definitions:
+
+  metricListenerResponse:
+    type: string 
+    description: Events
+    title: metricListenerResponse
+
   metricEnquiryResponse:
     type: object
     description: List of objects
@@ -167,23 +248,29 @@ definitions:
 
   metricCreationRequest:
     type: object
-    description: Resource identifier and link to the details of the resource that has just been created.
+    properties:
+      tm:
+        type: number
+        description: Total number of fields in the result
+      data:
+        type: object
+        description: Resource identifier and link to the details of the resource that has just been created.
     example:
-      firstName: Claudio
-      lastName: Heidel Schemberger
-      gender: Male
-      location: Madrid
-      country: Spain
-      sports:
-        - biking
-        - paragliding
-        - climbing
-        - running
-        - hiking
-      tm: 1572988888
-      lat: -3.6857917
-      lon: 40.444749
-
+      tm: 1572949522
+      data:
+        firstName: Claudio
+        lastName: Heidel Schemberger
+        gender: Male
+        location: Madrid
+        country: Spain
+        sports:
+          - biking
+          - paragliding
+          - climbing
+          - running
+          - hiking
+        tm: 1572988888
+        lat: -3.6857917
   metricCreationResponse:
     type: object
     description: Resource identifier and link to the details of the resource that has just been created.

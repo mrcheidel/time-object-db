@@ -1,46 +1,53 @@
 const objdb = new require('.././lib/time-objects-db.js');
     
-let metric = "metricId";
-let qty = 200;
+let metric = "metricId1";
+let qty = 1000;
 
-var tp = new objdb({
-  "basepath": __dirname + "/data/",
-  "period": 600,
-  "limit": 300}
-);
+var tp = new objdb({"basepath": __dirname + "/../data/"});
+console.log (tp.basepath);
 
-tp.delete(metric).then(data => {
-  console.log ("Metric " + metric + " has been deleted.");
-  //insert(tp);
-}).catch (error => {
-  console.log (error);
-  insert(tp);
 
-});
+if (tp.metricExist(metric)){
+  tp.clear(metric).then(data => {
+    console.log ("Metric " + metric + " has been deleted.");
+    insert(tp);
+  }).catch (error => {
+    console.log (error);
+  });
+} else {
+	insert(tp);
+}
 
-function insert(tp){
-    let tm  = parseInt(new Date().getTime()/1000);
 
-    let obj = {};
-    obj.tm = tm;
+
+async function insert(tp){
+    let tm  = 1573720000;
+    let ap = [];
+    var hrstart = process.hrtime();
+
     for (var i=0; i < qty; i++){
-      obj.tm = obj.tm + i;
+      var obj = {};
+      obj.tm = tm + (i * 10) ;
       obj.firstName = "Claudio";
       obj.lastName = "Heidel Schemberger";
       obj.gender = "Male";
       obj.department = "Architecture";
       obj.city = "Madrid";
       obj.country = "Spain";
-
-      tp.write (metric, obj.tm, obj).then(data  => {
-          //console.log (data);
-      }).catch (error => {
-          console.log (error);
-      });
+      await tp.insert (metric, obj.tm , obj).catch(err => {console.log (err)});
     }
-    console.log ("Metric " + metric + " created.");
+
+    let fr = tm +100;
+    let to = tm +110;
+    console.log ("fr: "+ fr + " to: " +to);
+
+    await tp.read (metric, fr, to).then (result => {
+      console.log (result);
+    }).catch (error => {
+      console.log (error);
+    });
+    
+ 	var hrend = process.hrtime(hrstart);
+	console.log (hrend[0] + "." + (parseInt(hrend[1] / 1000000)) + " s");
+
 }
-
- 
-
-
