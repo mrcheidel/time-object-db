@@ -151,7 +151,6 @@ app.get('/metrics/:metricId/events', function(req, res) {
       counter++;
     });
 
-
   } catch (e) {
     console.log(e);
     res.status(500).send(newErrorObject("500", "Internal Server Error", "ERROR", ""));
