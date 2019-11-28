@@ -15,7 +15,7 @@ schemes:
 tags:
   - name: Metrics
 paths:
-  '/metrics/{metricId}/objects':
+  '/databases/{databaseId}/metrics/{metricId}/objects':
     get:
       summary: Service to fetch the list of metrics objects.
       description: This service fetches the list objects in the metric in an time interval.
@@ -27,6 +27,11 @@ paths:
         - Metrics
       operationId: resourceListEnquiry
       parameters:
+        - name: databaseId
+          in: path
+          description: Database Identifier
+          required: true
+          type: string
         - name: metricId
           in: path
           description: Metric Identifier
@@ -61,7 +66,7 @@ paths:
             $ref: '#/definitions/500InternalServerError'
 
     post:
-      summary: Service to create a new metric (if not exist) and a new object.
+      summary: Service to create a new database (if not exist), a new metric (if not exist) and a new object.
       description: This service creates a new value in the metrics collection. The payload in the request body must contain all the mandatory attributes defined for the Resource object (Bussiness Data Schema). The response will contain the resource identifier and the link to retrieve the complete details of the resource.
       consumes:
         - application/json
@@ -71,6 +76,11 @@ paths:
         - Metrics
       operationId: metricCreationEnquiry
       parameters:
+        - name: databaseId
+          in: path
+          description: Database Identifier
+          required: true
+          type: string
         - name: metricId
           in: path
           description: Metric Identifier
@@ -97,7 +107,7 @@ paths:
           schema:
             $ref: '#/definitions/500InternalServerError'
             
-  '/metrics/{metricId}/events':
+  '/databases/{databaseId}/metrics/{metricId}/events':
     get:
       summary: Service Sent Event Listener 
       description: Service Sent Event Listener
@@ -109,6 +119,11 @@ paths:
         - Metrics
       operationId: resourceListenerEnquiry
       parameters:
+        - name: databaseId
+          in: path
+          description: Database Identifier
+          required: true
+          type: string
         - name: metricId
           in: path
           description: Metric Identifier
@@ -132,8 +147,42 @@ paths:
           description: Internal Server Error - Use it as a General System Error.
           schema:
             $ref: '#/definitions/500InternalServerError'
+            
+  '/databases/{databaseId}':
+    delete:
+      summary: Service to delete an complete database .
+      description: Service to clear an complete database.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Metrics
+      operationId: metricDelete
+      parameters:
+        - name: databaseId
+          in: path
+          description: Database Identifier
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Created - The resource was created successfully and its identifier and link to the details are included in the body of the response.
+        '400':
+          description: Bad Request - If the resource is misspelled (badly constructed URI) / If the data in the request is not correct.
+          schema:
+            $ref: '#/definitions/400BadRequestError'
+        '404':
+          description: "Resource not found"
+          schema:
+            $ref: '#/definitions/404NotFoundError'
+        '500':
+          description: Internal Server Error - Use it as a General System Error.
+          schema:
+            $ref: '#/definitions/500InternalServerError' 
+            
 
-  '/metrics/{metricId}':
+  '/databases/{databaseId}/metrics/{metricId}':
     delete:
       summary: Service to delete an complete metricId collection.
       description: Service to clear an complete metricId collection.
@@ -143,8 +192,13 @@ paths:
         - application/json
       tags:
         - Metrics
-      operationId: metricDelete
+      operationId: databaseDelete
       parameters:
+        - name: databaseId
+          in: path
+          description: Database Identifier
+          required: true
+          type: string
         - name: metricId
           in: path
           description: Metric Indentifier
@@ -166,7 +220,7 @@ paths:
           schema:
             $ref: '#/definitions/500InternalServerError' 
             
-  '/metrics/{metricId}/object/{objectId}':
+  '/databases/{databaseId}/metrics/{metricId}/object/{objectId}':
     delete:
       summary: Service to delete an object from the metricId collection.
       description: Service to delete an object from the metricId collection.
@@ -178,6 +232,11 @@ paths:
         - Metrics
       operationId: resourceDelete
       parameters:
+        - name: databaseId
+          in: path
+          description: Database Identifier
+          required: true
+          type: string
         - name: metricId
           in: path
           description: Metric Indentifier

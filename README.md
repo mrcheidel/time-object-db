@@ -22,15 +22,14 @@ The main features of the time-object-db are:
 - Delete metric objects from a specific time value.
 - Complete clean a metric collection
 
-This database emit 5 events
+This database emit 7 events
 
-- insert/{metridId} => When a new object is inserted
-- delete/{metridId} => When a object has been deleted
-- read/{metridId} => When a new query has been executed.
-- index/{metridId}  => When a index is updated or created
-- clear/{metridId}  => When a metric is deleted
-
-
+- database/{databaseId}/database-delete    => When a database is deleted
+- database/{databaseId}/metric-delete/{metridId} => When a metric is deleted
+- database/{databaseId}/index/{metridId}   => When a index is updated or created
+- database/{databaseId}/delete/{metridId}  => When an object is deleted
+- database/{databaseId}/insert/{metridId}  => When a new object is inserted
+- database/{databaseId}/read/{metridId}    => When a new query has been executed.
 
 ### Development notes:
 

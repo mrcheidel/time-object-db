@@ -7,6 +7,7 @@ const objdb = require('./lib/time-objects-db.js');
 const bodyParser = require('body-parser');
 const compression = require('compression');
 
+let database = "4c49c2a0-11fa-11ea-969b-5f0da336b8d7" ;//require('uuid/v1')();
 let debug = true;
 let tp = new objdb({"basepath": __dirname + "/data/"});
 
@@ -48,15 +49,50 @@ app.get('/contract', function(req, res) {
   res.sendFile(__dirname + '/doc/swagger.yaml');
 });
 
-app.delete('/metrics/:metricId', function(req, res) {
-  let metric = req.params.metricId;
+
+app.delete('/databases/:databaseId', function(req, res) {
+  let databaseId = req.params.databaseId.trim();
+
+  var reg = new RegExp("^[0-9a-zA-Z-]+$");
+  if (databaseId.length == 0 || !reg.test(databaseId)) {
+    res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
+    return;
+  }
+  
+  tp.setDatabaseId(databaseId);
+  tp.deleteDatabase().then(data => {
+    res.status(204).send();
+  }).catch(error => {
+    if (error.msg == "404") {
+      res.status(404).send(newErrorObject("404", "Database doesn't exist", "ERROR", ""));
+    } else {
+      console.log(error);
+      res.status(500).send(newErrorObject("500", "Internal Server Error", "ERROR", ""));
+    }
+  });
+});
+
+
+
+
+app.delete('/databases/:databaseId/metrics/:metricId', function(req, res) {
+  let metric = req.params.metricId.trim();
+  let databaseId = req.params.databaseId.trim();
+
   var reg = new RegExp("^[0-9a-zA-Z-]+$");
   if (metric.length == 0 || !reg.test(metric)) {
     res.status(400).send("The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
     return;
   }
 
-  tp.clear(metric).then(data => {
+  var reg = new RegExp("^[0-9a-zA-Z-]+$");
+  if (databaseId.length == 0 || !reg.test(databaseId)) {
+    res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
+    return;
+  }
+  
+  tp.setDatabaseId(databaseId);
+  tp.deleteMetric(metric).then(data => {
     res.status(204).send();
   }).catch(error => {
     if (error.msg == "404") {
@@ -68,12 +104,13 @@ app.delete('/metrics/:metricId', function(req, res) {
   });
 });
 
-app.delete('/metrics/:metricId/object/:objectId', function(req, res) {
-  let metric = req.params.metricId;
-  let objectId = req.params.objectId;
+app.delete('/databases/:databaseId/metrics/:metricId/object/:objectId', function(req, res) {
+  let metricId = req.params.metricId.trim();;
+  let objectId = req.params.objectId.trim();;
+  let databaseId = req.params.databaseId.trim();
 
   var reg = new RegExp("^[0-9a-zA-Z-]+$");
-  if (metric.length == 0 || !reg.test(metric)) {
+  if (metricId.length == 0 || !reg.test(metricId)) {
     res.status(400).send("The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
     return;
   }
@@ -82,9 +119,16 @@ app.delete('/metrics/:metricId/object/:objectId', function(req, res) {
     res.status(400).send(newErrorObject("400", "Bad Request", "ERROR", "The \"tm\" query parameter need to be a epoc datetime number"));
     return;
   }
-
   objectId = parseInt(objectId);
-  tp.delete(metric, objectId).then(data => {
+
+  var reg = new RegExp("^[0-9a-zA-Z-]+$");
+  if (databaseId.length == 0 || !reg.test(databaseId)) {
+    res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
+    return;
+  }
+  
+  tp.setDatabaseId(databaseId);
+  tp.delete(metricId, objectId).then(data => {
     res.status(204).send();
   }).catch(error => {
     if (error.msg == "404") {
@@ -96,15 +140,22 @@ app.delete('/metrics/:metricId/object/:objectId', function(req, res) {
   });
 });
 
-app.get('/metrics/:metricId/events', function(req, res) {
+app.get('/databases/:databaseId/metrics/:metricId/events', function(req, res) {
   let result = {};
   try {
     var start = process.hrtime();
-    let metric = req.params.metricId.trim();
+    let metricId = req.params.metricId.trim();
+    let databaseId = req.params.databaseId.trim();
 
     var reg = new RegExp("^[0-9a-zA-Z-]+$");
-    if (metric.length == 0 || !reg.test(metric)) {
+    if (metricId.length == 0 || !reg.test(metricId)) {
       res.status(400).send(newErrorObject("400", "Bad Request", "ERROR", "The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters"));
+      return;
+    }
+
+    var reg = new RegExp("^[0-9a-zA-Z-]+$");
+    if (databaseId.length == 0 || !reg.test(databaseId)) {
+      res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
       return;
     }
 
@@ -120,31 +171,32 @@ app.get('/metrics/:metricId/events', function(req, res) {
     res.write ( "retry: 5000\n");
     res.flush();
 
-    tp.events.on('insert/' + metric, function (metricId, tm, data) {
+    tp.setDatabaseId(databaseId);
+    tp.events.on("database/" + databaseId + "/insert/" + metricId, function (metricId, tm, data) {
       var result = {};
       result.objectId = tm;
       result.object = data;
-      res.write ( "event: insert/" + metric + "\n");
+      res.write ( "event: database/" + databaseId + "/insert/" + metricId + "\n");
       res.write ( "id: " + counter + "\n");
       res.write ( "data: " + JSON.stringify(result) +"\n\n" );
       res.flush(); // !!! this is the important part if we use compression
       counter++;
     });
 
-    tp.events.on('delete/' + metric, function (metricId, tm) {
+    tp.events.on("database/" + databaseId + "/delete/" + metricId, function (metricId, tm) {
       var result = {};
       result.objectId = tm;
-      res.write ( "event: delete/" + metric + "\n");
+      res.write ( "event: database/" + databaseId + "/delete/" + metricId + "\n");
       res.write ( "id: " + counter + "\n");
       res.write ( "data: " + JSON.stringify(result) +"\n\n" );
       res.flush(); // !!! this is the important part if we use compression
       counter++;
     });
 
-    tp.events.on('clear/' + metric, function (metricId) {
+    tp.events.on("database/" + databaseId + "/metric-delete/" + metricId, function (metricId) {
       var result = {};
       result.metricId = metricId;
-      res.write ( "event: clear/" + metric + "\n");
+      res.write ( "event: database/" + databaseId + "/metric-delete/" + metricId + "\n");
       res.write ( "id: " + counter + "\n");
       res.write ( "data: " + JSON.stringify(result) +"\n\n" );
       res.flush(); // !!! this is the important part if we use compression
@@ -157,15 +209,15 @@ app.get('/metrics/:metricId/events', function(req, res) {
   }
 });
 
-app.post('/metrics/:metricId/objects', function(req, res) {
+app.post('/databases/:databaseId/metrics/:metricId/objects', function(req, res) {
   let result = {};
   try {
     var start = process.hrtime();
     var obj = req.body;
-    var metric = req.params.metricId.trim();
+    var metricId = req.params.metricId.trim();
 
     var reg = new RegExp("^[0-9a-zA-Z-]+$");
-    if (metric.length == 0 || !reg.test(metric)) {
+    if (metricId.length == 0 || !reg.test(metricId)) {
       res.status(400).send(newErrorObject("400", "Bad Request", "ERROR", "The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters"));
       return;
     }
@@ -180,7 +232,15 @@ app.post('/metrics/:metricId/objects', function(req, res) {
       return;
     }
 
-    tp.insert(metric, obj.tm, obj.data).then(data => {
+    let databaseId = req.params.databaseId;
+    var reg = new RegExp("^[0-9a-zA-Z-]+$");
+    if (databaseId.length == 0 || !reg.test(databaseId)) {
+      res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
+      return;
+    }
+    
+    tp.setDatabaseId(databaseId);
+    tp.insert(metricId, obj.tm, obj.data).then(data => {
       result.data = obj.data;
       result.tm = obj.tm;
       if (debug) {
@@ -200,13 +260,21 @@ app.post('/metrics/:metricId/objects', function(req, res) {
   }
 });
 
-app.get('/metrics/:metricId/objects', function(req, res) {
+app.get('/databases/:databaseId/metrics/:metricId/objects', function(req, res) {
   let result = {};
   try {
     var start = process.hrtime();
     let fr = req.query.fr;
     let to = req.query.to;
     let metric = req.params.metricId.trim();
+    let databaseId = req.params.databaseId.trim();
+
+    var reg = new RegExp("^[0-9a-zA-Z-]+$");
+    if (databaseId.length == 0 || !reg.test(databaseId)) {
+      res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
+      return;
+    }
+
 
     var reg = new RegExp("^[0-9a-zA-Z-]+$");
     if (metric.length == 0 || !reg.test(metric)) {
@@ -227,6 +295,7 @@ app.get('/metrics/:metricId/objects', function(req, res) {
     fr = parseInt(fr);
     to = parseInt(to);
 
+    tp.setDatabaseId(databaseId);
     tp.read(metric, fr, to).then(result => {
       if (debug) result.stats = getStats(start);
       res.status(200).send(result);
