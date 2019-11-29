@@ -1,20 +1,40 @@
 swagger: "2.0"
 info:
   title: Time Object DB
-  version: 1.0.5
+  version: 1.0.6
   description: '<b>Time Object DB API Contract</b> <br>
   Swagger Contract that describe the use of this database'
   contact:
     name: Claudio Heidel Schemberger
-    url: 'https://time-object-db.claudioheidel.repl.co'
-
+    url: 'https://www.linkedin.com/in/mrcheidel/'
 host: 'time-object-db.claudioheidel.repl.co'
-basePath: /
+basePath: /v1
 schemes:
   - https
 tags:
+  - name: Databases
   - name: Metrics
+  - name: Objects
+  - name: Health
 paths:
+
+  '/health':
+    get:
+      summary: Health check end point
+      description:  Health check end point
+      operationId: healthOperation
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Health
+      responses:
+        '200':
+          description: OK - The list of resources was retrieved successfully and it is included in the body of the response.
+          schema:
+            $ref: '#/definitions/healthEnquiryResponse'
+        
   '/databases/{databaseId}/metrics/{metricId}/objects':
     get:
       summary: Service to fetch the list of metrics objects.
@@ -24,9 +44,14 @@ paths:
       produces:
         - application/json
       tags:
-        - Metrics
+        - Objects
       operationId: resourceListEnquiry
       parameters:
+        - name: token
+          in: header
+          required: true
+          type: string
+          description: Security Key
         - name: databaseId
           in: path
           description: Database Identifier
@@ -56,6 +81,10 @@ paths:
           description: Bad Request - If the resource is misspelled (badly constructed URI) / If the data in the request is not correct.
           schema:
             $ref: '#/definitions/400BadRequestError'
+        '403':
+            description: Forbidden - Invalid heade security token.
+            schema:
+              $ref: '#/definitions/403ForbiddenError'
         '404':
           description: "Resource not found"
           schema:
@@ -66,16 +95,21 @@ paths:
             $ref: '#/definitions/500InternalServerError'
 
     post:
-      summary: Service to create a new database (if not exist), a new metric (if not exist) and a new object.
+      summary: Service to create a new metric (if not exist) and a new object.
       description: This service creates a new value in the metrics collection. The payload in the request body must contain all the mandatory attributes defined for the Resource object (Bussiness Data Schema). The response will contain the resource identifier and the link to retrieve the complete details of the resource.
       consumes:
         - application/json
       produces:
         - application/json
       tags:
-        - Metrics
+        - Objects
       operationId: metricCreationEnquiry
       parameters:
+        - name: token
+          in: header
+          required: true
+          type: string
+          description: Security Key
         - name: databaseId
           in: path
           description: Database Identifier
@@ -102,6 +136,10 @@ paths:
           description: Bad Request - If the resource is misspelled (badly constructed URI) / If the data in the request is not correct.
           schema:
             $ref: '#/definitions/400BadRequestError'
+        '403':
+            description: Forbidden - Invalid heade security token.
+            schema:
+              $ref: '#/definitions/403ForbiddenError'
         '500':
           description: Internal Server Error - Use it as a General System Error.
           schema:
@@ -139,10 +177,39 @@ paths:
           description: Bad Request - If the resource is misspelled (badly constructed URI) / If the data in the request is not correct.
           schema:
             $ref: '#/definitions/400BadRequestError'
+        '403':
+            description: Forbidden - Invalid heade security token.
+            schema:
+              $ref: '#/definitions/403ForbiddenError'
         '404':
           description: "Resource not found"
           schema:
             $ref: '#/definitions/404NotFoundError'
+        '500':
+          description: Internal Server Error - Use it as a General System Error.
+          schema:
+            $ref: '#/definitions/500InternalServerError'
+
+  '/databases':
+    post:
+      summary: Service to create a new database.
+      description: Service to create a new database.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Databases
+      operationId: createDatabase
+      responses:
+        '201':
+          description: Created - The resource was created successfully and its identifier and link to the details are included in the body of the response.
+          schema:
+            $ref: '#/definitions/databaseCreationResponse'
+        '400':
+          description: Bad Request - If the resource is misspelled (badly constructed URI) / If the data in the request is not correct.
+          schema:
+            $ref: '#/definitions/400BadRequestError'
         '500':
           description: Internal Server Error - Use it as a General System Error.
           schema:
@@ -157,9 +224,14 @@ paths:
       produces:
         - application/json
       tags:
-        - Metrics
+        - Databases
       operationId: metricDelete
       parameters:
+        - name: token
+          in: header
+          required: true
+          type: string
+          description: Security Key
         - name: databaseId
           in: path
           description: Database Identifier
@@ -172,6 +244,11 @@ paths:
           description: Bad Request - If the resource is misspelled (badly constructed URI) / If the data in the request is not correct.
           schema:
             $ref: '#/definitions/400BadRequestError'
+        '403':
+          description: Forbidden - Invalid heade security token.
+          schema:
+            $ref: '#/definitions/403ForbiddenError'
+
         '404':
           description: "Resource not found"
           schema:
@@ -194,6 +271,11 @@ paths:
         - Metrics
       operationId: databaseDelete
       parameters:
+        - name: token
+          in: header
+          required: true
+          type: string
+          description: Security Key
         - name: databaseId
           in: path
           description: Database Identifier
@@ -211,6 +293,10 @@ paths:
           description: Bad Request - If the resource is misspelled (badly constructed URI) / If the data in the request is not correct.
           schema:
             $ref: '#/definitions/400BadRequestError'
+        '403':
+            description: Forbidden - Invalid heade security token.
+            schema:
+              $ref: '#/definitions/403ForbiddenError'
         '404':
           description: "Resource not found"
           schema:
@@ -220,7 +306,7 @@ paths:
           schema:
             $ref: '#/definitions/500InternalServerError' 
             
-  '/databases/{databaseId}/metrics/{metricId}/object/{objectId}':
+  '/databases/{databaseId}/metrics/{metricId}/objects/{objectId}':
     delete:
       summary: Service to delete an object from the metricId collection.
       description: Service to delete an object from the metricId collection.
@@ -229,9 +315,14 @@ paths:
       produces:
         - application/json
       tags:
-        - Metrics
+        - Objects
       operationId: resourceDelete
       parameters:
+        - name: token
+          in: header
+          required: true
+          type: string
+          description: Security Key
         - name: databaseId
           in: path
           description: Database Identifier
@@ -264,6 +355,33 @@ paths:
             $ref: '#/definitions/500InternalServerError'
             
 definitions:
+
+  healthEnquiryResponse:
+    type: object
+    example:
+      apiVersion: 1.0.6
+      description: Time Object Db
+      systemTimestampDate: '2019-11-29T12:00:36Z'
+      stats:
+        memoryUsage:
+          rss: 45.2 MB
+          heapTotal: 21.23 MB
+          heapUsed: 12.55 MB
+          external: 0.24 MB
+        executionTime: 0.1 s
+
+  databaseCreationResponse:
+    type: object
+    description: List of objects
+    properties:
+      databaseId:
+        type: string
+        description: Database Unique Identifier
+        example: 'bcd9b4c0-1296-11ea-907c-11d417ac91a9'
+      key:
+        type: string
+        description: Key to be used as security token
+        example: '570af3c05cc424283c0e6bf14ffda17b3a07bd7f5f2a0d172b436805f4dexxxx'
 
   metricListenerResponse:
     type: string 
@@ -378,6 +496,24 @@ definitions:
           description: Bad Request
           level: ERROR
           message: Invalid Request. Please, check the data in the request (QueryString Parameters and/or Body).
+          
+  403ForbiddenError:
+    type: object
+    description: List of errors
+    properties:
+      errors:
+        type: array
+        description: Details of each of the errors
+        items:
+          $ref: '#/definitions/errorObject'
+    title: 403ForbiddenError
+    example:
+      errors:
+        - code: '403'
+          description: Forbidden Error
+          level: ERROR
+          message: Forbidden Error. The user is not allowed to executed this operation.
+
           
   404NotFoundError:
     type: object

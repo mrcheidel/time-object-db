@@ -8,7 +8,7 @@ const bodyParser = require('body-parser');
 const compression = require('compression');
 
 let database = "4c49c2a0-11fa-11ea-969b-5f0da336b8d7" ;//require('uuid/v1')();
-let debug = true;
+let debug = false;
 let tp = new objdb({"basepath": __dirname + "/data/"});
 
 var onindex = function (indexfile) {
@@ -50,12 +50,24 @@ app.get('/contract', function(req, res) {
 });
 
 
-app.delete('/databases/:databaseId', function(req, res) {
-  let databaseId = req.params.databaseId.trim();
 
-  var reg = new RegExp("^[0-9a-zA-Z-]+$");
-  if (databaseId.length == 0 || !reg.test(databaseId)) {
-    res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
+app.get('/v1/health', function(req, res) {
+  let start = process.hrtime();
+  let result = {
+      "apiVersion": "1.0.6",
+      "description": "Time Object Db",
+      "systemTimestampDate": new Date().rfc3339(),
+      "stats": getStats(start)
+    }
+    res.status(200).send(result);
+});
+
+app.delete('/v1/databases/:databaseId', function(req, res) {
+  let databaseId = req.params.databaseId.trim();
+  let token = req.header('token');
+
+  if (!checkSignature (databaseId, token)) {
+    res.status(403).send(newErrorObject("403", "Forbidden, invalid token header.", "ERROR", ""));
     return;
   }
   
@@ -72,12 +84,15 @@ app.delete('/databases/:databaseId', function(req, res) {
   });
 });
 
-
-
-
-app.delete('/databases/:databaseId/metrics/:metricId', function(req, res) {
+app.delete('/v1/databases/:databaseId/metrics/:metricId', function(req, res) {
   let metric = req.params.metricId.trim();
   let databaseId = req.params.databaseId.trim();
+  let token = req.header('token');
+
+  if (!checkSignature (databaseId, token)) {
+    res.status(403).send(newErrorObject("403", "Forbidden, invalid token header.", "ERROR", ""));
+    return;
+  }
 
   var reg = new RegExp("^[0-9a-zA-Z-]+$");
   if (metric.length == 0 || !reg.test(metric)) {
@@ -104,10 +119,16 @@ app.delete('/databases/:databaseId/metrics/:metricId', function(req, res) {
   });
 });
 
-app.delete('/databases/:databaseId/metrics/:metricId/object/:objectId', function(req, res) {
+app.delete('/v1/databases/:databaseId/metrics/:metricId/objects/:objectId', function(req, res) {
   let metricId = req.params.metricId.trim();;
   let objectId = req.params.objectId.trim();;
   let databaseId = req.params.databaseId.trim();
+  let token = req.header('token');
+
+  if (!checkSignature (databaseId, token)) {
+    res.status(403).send(newErrorObject("403", "Forbidden, invalid token header.", "ERROR", ""));
+    return;
+  }
 
   var reg = new RegExp("^[0-9a-zA-Z-]+$");
   if (metricId.length == 0 || !reg.test(metricId)) {
@@ -140,7 +161,7 @@ app.delete('/databases/:databaseId/metrics/:metricId/object/:objectId', function
   });
 });
 
-app.get('/databases/:databaseId/metrics/:metricId/events', function(req, res) {
+app.get('/v1/databases/:databaseId/metrics/:metricId/events', function(req, res) {
   let result = {};
   try {
     var start = process.hrtime();
@@ -209,12 +230,39 @@ app.get('/databases/:databaseId/metrics/:metricId/events', function(req, res) {
   }
 });
 
-app.post('/databases/:databaseId/metrics/:metricId/objects', function(req, res) {
+app.post('/v1/databases', function(req, res) {
+  let result = {};
+  try {
+    var start = process.hrtime();
+    tp.createDb().then(data => {
+      result.databaseId = data.databaseId;
+      result.key = getSignature(data.databaseId);
+      if (debug) {
+        result.stats = getStats(start);
+      }
+      res.status(201).send(result);
+    }).catch(error => {
+      console.log(error);
+      res.status(500).send(newErrorObject("500", "Internal Server Error", "ERROR", ""));
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).send(newErrorObject("500", "Internal Server Error", "ERROR", ""));
+  }
+});
+
+app.post('/v1/databases/:databaseId/metrics/:metricId/objects', function(req, res) {
   let result = {};
   try {
     var start = process.hrtime();
     var obj = req.body;
     var metricId = req.params.metricId.trim();
+    let token = req.header('token');
+
+    if (!checkSignature (databaseId, token)) {
+      res.status(403).send(newErrorObject("403", "Forbidden, invalid token header.", "ERROR", ""));
+      return;
+    }
 
     var reg = new RegExp("^[0-9a-zA-Z-]+$");
     if (metricId.length == 0 || !reg.test(metricId)) {
@@ -260,7 +308,7 @@ app.post('/databases/:databaseId/metrics/:metricId/objects', function(req, res) 
   }
 });
 
-app.get('/databases/:databaseId/metrics/:metricId/objects', function(req, res) {
+app.get('/v1/databases/:databaseId/metrics/:metricId/objects', function(req, res) {
   let result = {};
   try {
     var start = process.hrtime();
@@ -268,6 +316,12 @@ app.get('/databases/:databaseId/metrics/:metricId/objects', function(req, res) {
     let to = req.query.to;
     let metric = req.params.metricId.trim();
     let databaseId = req.params.databaseId.trim();
+    let token = req.header('token');
+
+    if (!checkSignature (databaseId, token)) {
+      res.status(403).send(newErrorObject("403", "Forbidden, invalid token header.", "ERROR", ""));
+      return;
+    }
 
     var reg = new RegExp("^[0-9a-zA-Z-]+$");
     if (databaseId.length == 0 || !reg.test(databaseId)) {
@@ -336,4 +390,32 @@ function newErrorObject(code, description, level, message) {
   result.level = level; //[INFO, ERROR, WARNING, FATAL]
   result.message = message;
   return result;
+}
+
+function checkSignature (databaseId, token){
+  var selfToken = getSignature(databaseId);
+  return selfToken == token;
+}
+
+function getSignature(databaseId) {
+  var crypto = require('crypto');
+  var hmac = crypto.createHmac('sha256', '645267556B58703273357638792F423F4528472B4B6250655368566D59713374');
+  var data = hmac.update(databaseId);
+  var gen_hmac= data.digest('hex');
+  return gen_hmac;
+}
+
+Number.prototype.padLeft = function(base,chr){
+    var len = (String(base || 10).length - String(this).length)+1;
+    return len > 0? new Array(len).join(chr || '0')+this : this;
+}
+
+Date.prototype.rfc3339 = function(){
+  var dformat = this.getFullYear() + "-" + 
+              new Number((this.getMonth()+1)).padLeft() + "-" + 
+              new Number(this.getDate()).padLeft() + "T" +
+              new Number(this.getHours()).padLeft() + ":" +
+              new Number(this.getMinutes()).padLeft() + ":" +
+              new Number(this.getSeconds()).padLeft() + "Z";
+  return dformat;
 }

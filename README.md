@@ -6,7 +6,7 @@ author: Claudio Heidel Schemberger
 
 # Welcome to time-object-db 
 
-Current version: 1.0.5
+Current version: 1.0.6
 
 ## Challenge:
 
