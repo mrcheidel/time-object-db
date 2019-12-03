@@ -1,0 +1,643 @@
+openapi: 3.0.1
+info:
+  title: Time Object DB
+  description: <b>Time Object DB API Contract</b> <br> Swagger Contract that describe
+    the use of this database
+  contact:
+    name: Claudio Heidel Schemberger
+    url: https://www.linkedin.com/in/mrcheidel/
+  version: 1.0.6
+servers:
+- url: https://time-object-db.claudioheidel.repl.co/v1
+tags:
+- name: Databases
+- name: Metrics
+- name: Objects
+- name: Health
+paths:
+  /health:
+    get:
+      tags:
+      - Health
+      summary: Health check end point
+      description: Health check end point
+      operationId: checkHealth
+      responses:
+        200:
+          description: OK - The list of resources was retrieved successfully and it
+            is included in the body of the response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/healthEnquiryResponse'
+                
+  /databases/{databaseId}/metrics/{metricId}/objects:
+    get:
+      tags:
+      - Objects
+      summary: Service to fetch the list of metrics objects.
+      description: This service fetches the list objects in the metric in an time
+        interval.
+      operationId: findObjects
+      parameters:
+      - name: token
+        in: header
+        description: Security Key
+        required: true
+        schema:
+          type: string
+      - name: databaseId
+        in: path
+        description: Database Identifier
+        required: true
+        schema:
+          type: string
+      - name: metricId
+        in: path
+        description: Metric Identifier
+        required: true
+        schema:
+          type: string
+      - name: fr
+        in: query
+        description: 'From Epoc datetime. Example: 1572949522'
+        required: true
+        schema:
+          type: number
+      - name: to
+        in: query
+        description: 'To Epoc datetime. Example: 1572949522'
+        required: true
+        schema:
+          type: number
+      responses:
+        200:
+          description: OK - The list of resources was retrieved successfully and it
+            is included in the body of the response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/metricEnquiryResponse'
+        400:
+          description: Bad Request - If the resource is misspelled (badly constructed
+            URI) / If the data in the request is not correct.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400BadRequestError'
+        403:
+          description: Forbidden - Invalid heade security token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/403ForbiddenError'
+        404:
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/404NotFoundError'
+        500:
+          description: Internal Server Error - Use it as a General System Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/500InternalServerError'
+    post:
+      tags:
+      - Objects
+      summary: Service to create a new metric (if not exist) and a new object.
+      description: This service creates a new value in the metrics collection. The
+        payload in the request body must contain all the mandatory attributes defined
+        for the Resource object (Bussiness Data Schema). The response will contain
+        the resource identifier and the link to retrieve the complete details of the
+        resource.
+      operationId: insertObject
+      parameters:
+      - name: token
+        in: header
+        description: Security Key
+        required: true
+        schema:
+          type: string
+      - name: X-Action
+        in: header
+        description: Single or Bulk insert action
+        required: true
+        schema:
+          type: string
+          enum:
+            - single
+            - bulk
+      - name: databaseId
+        in: path
+        description: Database Identifier
+        required: true
+        schema:
+          type: string
+      - name: metricId
+        in: path
+        description: Metric Identifier
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Object to be inserted into the DB
+        content:
+          application/json:
+            schema:
+              discriminator:
+                propertyName: X-Action
+              oneOf:
+              - $ref: '#/components/schemas/metricSingleCreationRequest'
+              - $ref: '#/components/schemas/metricBulkCreationRequest'
+
+                  
+        required: true
+      responses:
+        201:
+          description: Created - The resource was created successfully and its identifier
+            and link to the details are included in the body of the response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/metricCreationResponse'
+        400:
+          description: Bad Request - If the resource is misspelled (badly constructed
+            URI) / If the data in the request is not correct.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400BadRequestError'
+        403:
+          description: Forbidden - Invalid heade security token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/403ForbiddenError'
+        500:
+          description: Internal Server Error - Use it as a General System Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/500InternalServerError'
+      x-codegen-request-body-name: request
+  /databases/{databaseId}/metrics/{metricId}/events:
+    get:
+      tags:
+      - Metrics
+      summary: Service Sent Event Listener
+      description: Service Sent Event Listener
+      operationId: metricEvents
+      parameters:
+      - name: databaseId
+        in: path
+        description: Database Identifier
+        required: true
+        schema:
+          type: string
+      - name: metricId
+        in: path
+        description: Metric Identifier
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Created - The resource was created successfully and its identifier
+            and link to the details are included in the body of the response.
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/metricListenerResponse'
+        400:
+          description: Bad Request - If the resource is misspelled (badly constructed
+            URI) / If the data in the request is not correct.
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/400BadRequestError'
+        403:
+          description: Forbidden - Invalid heade security token.
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/403ForbiddenError'
+        404:
+          description: Resource not found
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/404NotFoundError'
+        500:
+          description: Internal Server Error - Use it as a General System Error.
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/500InternalServerError'
+  /databases:
+    post:
+      tags:
+      - Databases
+      summary: Service to create a new database.
+      description: Service to create a new database.
+      operationId: createDb
+      responses:
+        201:
+          description: Created - The resource was created successfully and its identifier
+            and link to the details are included in the body of the response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/databaseCreationResponse'
+        400:
+          description: Bad Request - If the resource is misspelled (badly constructed
+            URI) / If the data in the request is not correct.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400BadRequestError'
+        500:
+          description: Internal Server Error - Use it as a General System Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/500InternalServerError'
+  /databases/{databaseId}:
+    delete:
+      tags:
+      - Databases
+      summary: Service to delete an complete database .
+      description: Service to clear an complete database.
+      operationId: deleteDb
+      parameters:
+      - name: token
+        in: header
+        description: Security Key
+        required: true
+        schema:
+          type: string
+      - name: databaseId
+        in: path
+        description: Database Identifier
+        required: true
+        schema:
+          type: string
+      responses:
+        204:
+          description: Created - The resource was created successfully and its identifier
+            and link to the details are included in the body of the response.
+          content: {}
+        400:
+          description: Bad Request - If the resource is misspelled (badly constructed
+            URI) / If the data in the request is not correct.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400BadRequestError'
+        403:
+          description: Forbidden - Invalid heade security token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/403ForbiddenError'
+        404:
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/404NotFoundError'
+        500:
+          description: Internal Server Error - Use it as a General System Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/500InternalServerError'
+  /databases/{databaseId}/metrics/{metricId}:
+    delete:
+      tags:
+      - Metrics
+      summary: Service to delete an complete metricId collection.
+      description: Service to clear an complete metricId collection.
+      operationId: deleteMetric
+      parameters:
+      - name: token
+        in: header
+        description: Security Key
+        required: true
+        schema:
+          type: string
+      - name: databaseId
+        in: path
+        description: Database Identifier
+        required: true
+        schema:
+          type: string
+      - name: metricId
+        in: path
+        description: Metric Indentifier
+        required: true
+        schema:
+          type: string
+      responses:
+        204:
+          description: Created - The resource was created successfully and its identifier
+            and link to the details are included in the body of the response.
+          content: {}
+        400:
+          description: Bad Request - If the resource is misspelled (badly constructed
+            URI) / If the data in the request is not correct.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400BadRequestError'
+        403:
+          description: Forbidden - Invalid heade security token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/403ForbiddenError'
+        404:
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/404NotFoundError'
+        500:
+          description: Internal Server Error - Use it as a General System Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/500InternalServerError'
+  /databases/{databaseId}/metrics/{metricId}/objects/{objectId}:
+    delete:
+      tags:
+      - Objects
+      summary: Service to delete an object from the metricId collection.
+      description: Service to delete an object from the metricId collection.
+      operationId: deleteObject
+      parameters:
+      - name: token
+        in: header
+        description: Security Key
+        required: true
+        schema:
+          type: string
+      - name: databaseId
+        in: path
+        description: Database Identifier
+        required: true
+        schema:
+          type: string
+      - name: metricId
+        in: path
+        description: Metric Indentifier
+        required: true
+        schema:
+          type: string
+      - name: objectId
+        in: path
+        description: 'Value Epoc datetime to be deleted. Example: 1572949522'
+        required: true
+        schema:
+          type: number
+      responses:
+        204:
+          description: Created - The resource was created successfully and its identifier
+            and link to the details are included in the body of the response.
+          content: {}
+        400:
+          description: Bad Request - If the resource is misspelled (badly constructed
+            URI) / If the data in the request is not correct.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400BadRequestError'
+        404:
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/404NotFoundError'
+        500:
+          description: Internal Server Error - Use it as a General System Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/500InternalServerError'
+components:
+  schemas:
+    healthEnquiryResponse:
+      type: object
+      example:
+        apiVersion: 1.0.6
+        description: Time Object Db
+        systemTimestampDate: '2019-11-29T12:00:36Z'
+        stats:
+          memoryUsage:
+            rss: 45.2 MB
+            heapTotal: 21.23 MB
+            heapUsed: 12.55 MB
+            external: 0.24 MB
+          executionTime: 0.1 s
+    databaseCreationResponse:
+      type: object
+      properties:
+        databaseId:
+          type: string
+          description: Database Unique Identifier
+          example: bcd9b4c0-1296-11ea-907c-11d417ac91a9
+        key:
+          type: string
+          description: Key to be used as security token
+          example: 570af3c05cc424283c0e6bf14ffda17b3a07bd7f5f2a0d172b436805f4dexxxx
+      description: List of objects
+    metricListenerResponse:
+      title: metricListenerResponse
+      type: string
+      description: Events
+    metricEnquiryResponse:
+      title: metricEnquiryResponse
+      type: object
+      properties:
+        data:
+          type: array
+          description: Subset of attributes for each of the retrieved resources.
+          items:
+            type: object
+            properties: {}
+        self:
+          type: object
+          properties:
+            find:
+              type: number
+              description: Total number of fields in the result
+              example: 1.0
+            limit:
+              type: number
+              description: Max Number of elements
+              example: 300.0
+            total:
+              type: number
+              description: Total number of fields in the DB
+              example: 300.0
+            min:
+              type: number
+              description: Minimun value in the query
+              example: 1572949522
+            max:
+              type: number
+              description: Maximun value in the query
+              example: 1572949522
+      description: List of objects
+      
+    metricBulkCreationRequest:
+      type: array
+      items:
+        type: object
+        properties:
+          tm:
+            type: number
+            description: Total number of fields in the result
+            example: 157294900
+          data:
+            type: object
+            properties: {}
+            description: Resource identifier and link to the details of the resource
+              that has just been created.
+            example:
+              firstName: Claudio
+              lastName: Heidel Schemberger
+              gender: Male
+              location: Madrid
+              country: Spain
+              sports:
+              - biking
+              - paragling
+
+    metricSingleCreationRequest:
+      type: object
+      properties:
+        tm:
+          type: number
+          description: Total number of fields in the result
+          example: 1572949522
+        data:
+          type: object
+          properties: {}
+          description: Resource identifier and link to the details of the resource
+            that has just been created.
+          example:
+            firstName: Claudio
+            lastName: Heidel Schemberger
+            gender: Male
+            location: Madrid
+            country: Spain
+            sports:
+            - climbing
+            - hiking
+
+   
+    metricCreationResponse:
+      type: object
+      description: Resource identifier and link to the details of the resource that
+        has just been created.
+    errorObject:
+      title: errorObject
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code
+          example: "400"
+        description:
+          type: string
+          description: Error description
+          example: Bad Request
+        level:
+          type: string
+          description: Error level
+          example: ERROR
+          enum:
+          - INFO
+          - ERROR
+          - WARNING
+          - FATAL
+        message:
+          type: string
+          description: Error message (detailed description)
+          example: Invalid Request. Please, check the data in the request (QueryString
+            Parameters and/or Body).
+      description: Error details
+      example:
+        code: "400"
+        description: Bad Request
+        level: ERROR
+        message: Invalid Request. Please, check the data in the request (QueryString
+          Parameters and/or Body).
+    400BadRequestError:
+      title: 400BadRequestError
+      type: object
+      properties:
+        errors:
+          type: array
+          description: Details of each of the errors
+          items:
+            $ref: '#/components/schemas/errorObject'
+      description: List of errors
+      example:
+        errors:
+        - code: "400"
+          description: Bad Request
+          level: ERROR
+          message: Invalid Request. Please, check the data in the request (QueryString
+            Parameters and/or Body).
+    403ForbiddenError:
+      title: 403ForbiddenError
+      type: object
+      properties:
+        errors:
+          type: array
+          description: Details of each of the errors
+          items:
+            $ref: '#/components/schemas/errorObject'
+      description: List of errors
+      example:
+        errors:
+        - code: "403"
+          description: Forbidden Error
+          level: ERROR
+          message: Forbidden Error. The user is not allowed to executed this operation.
+    404NotFoundError:
+      title: 404NotFoundError
+      type: object
+      properties:
+        errors:
+          type: array
+          description: Details of each of the errors
+          items:
+            $ref: '#/components/schemas/errorObject'
+      description: List of errors
+      example:
+        errors:
+        - code: 404
+          description: Resouce not found
+          level: ERROR
+          message: Resouce not found. Please, check the ResourceId specified.
+    500InternalServerError:
+      title: 500InternalServerError
+      type: object
+      properties:
+        errors:
+          type: array
+          description: Details of each of the errors
+          items:
+            $ref: '#/components/schemas/errorObject'
+      description: List of errors
+      example:
+        errors:
+        - code: "500"
+          description: Internal Server Error
+          level: ERROR
+          message: Internal Server Error. The server encountered an unexpected condition
+            that prevented it from fulfilling the request.

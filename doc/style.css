@@ -2,7 +2,6 @@ body {
   font-family: Helvetica, arial, sans-serif;
   font-size: 14px;
   line-height: 1.6;
-  padding-top: 10px;
   padding-bottom: 10px;
   background-color: white;
   padding: 30px;
@@ -13,3 +12,14 @@ img {
   height: 60%;
   width: 60%;
 }
+
+
+pre {
+  background-color:lightgray; 
+  border: 1px solid;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  color: black;
+  padding: 5px;
+} 

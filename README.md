@@ -17,6 +17,7 @@ This persistence system need to have a quickly search feature, for this reason w
 At the same time this solution should be easy to deploy in cloud services such as the AWS Lambda functions (high availability and auto scaling).
 
 The main features of the time-object-db are:
+- Create and delete databases
 - Create metrics collections and store objects.
 - Fetch metric objects from a period time (between fromEpoc and toEpoc).
 - Delete metric objects from a specific time value.
@@ -49,6 +50,59 @@ npm install
 node index.js
 ```
 
+### How to use - From Node.js: 
+
+[Run this demo](https://repl.it/@ClaudioHeidel/todb-js)
+
+```bash
+const toDb = require ("./todb.js");
+
+const metricId = 'myMetricId';
+//Declare some object to insert
+const myObj1 =  {place: 'Parque del Retiro', address: 'Jerónimos', lat: 40.4151922, log: -3.683704};
+const myObj2 =  {place: 'Jardín Botánico', address: 'Plaza de Murillo, 2', lat: 40.4133796, log: -3.688833};
+
+//async/await
+(async() => {
+  //Obtain a new Db
+  let config = await toDb({}).createDb();
+  console.log (config);
+
+  //Instance Db
+  let db = toDb({databaseId: config.databaseId, token: config.key});
+  
+  //Check Db healt
+  let health = await db.checkHealth();
+  console.log (health);
+
+  //Insert the same object with different time
+  let value1 = await db.insertObject(metricId,123456789,myObj1).catch (err => console.log (err));
+  let value2 = await db.insertObject(metricId, 123456790, myObj2).catch (err => console.log (err));
+  console.log (value1);
+  console.log (value2);
+
+  let result = await db.insertBulkObjects(metricId, 
+                    [[123450000, myObj1],
+                     [123450001, myObj2],
+                     [123450002, myObj1],
+                     [123450003, myObj2]]).catch (err => console.log (err));
+  console.log ("Bulk Insert Result:");
+  console.log (result);
+
+  //Seach objects in a windows time
+  let search = await db.findObjects(metricId, 123450000, 123456900).catch (err => console.log (err));
+  console.log (search);
+
+  //Delete object by key (tm)
+  await db.deleteObject(metricId, 123456789).catch (err => console.log (err));
+
+  //Delete The metric
+  await db.deleteMetric(metricId).catch (err => console.log (err));
+
+  //Delete all Db
+  await db.deleteDb().catch (err => console.log (err));
+})()
+```
 
 ### How to use - API Contract: 
 
@@ -64,14 +118,6 @@ This database may be used directly from your own node.js code or via RESTful API
 You could be use the [Postman tool](https://www.getpostman.com/) in order to test this API.
 
 Find the [Postman collection and examples](https://github.com/mrcheidel/time-object-db/tree/master/test) that you could be import into the postman.
-
-
-![](doc/post-example.png)
-
-![](doc/get-example.PNG)
-
-![](doc/delete-example.PNG)
-
 
 ## Solution:
 
@@ -89,13 +135,14 @@ List of pending points
 
 - Implement the **checkIndex** like a health functionality with re-creation index option.
 - Event propagation between diferent server instances 
-- Server Sent Events API in order to expose events through continuous query approach.
+- <s>Server Sent Events API in order to expose events through continuous query approach.</s>
 - Backup & Restore API.
-- health check endpoint.
+- <s>health check endpoint.</s>
+- <s>Client code for Node.js.</s>
 
 ## Links
 
-Dev Page : [Repl.it](https://time-object-db.claudioheidel.repl.co)
+Server Dev Page : [Repl.it](https://repl.it/@ClaudioHeidel/time-object-db)
 
 Online Demo: [View & Execute the API contract](https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract)
 

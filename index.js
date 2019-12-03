@@ -6,10 +6,17 @@ const cors = require('cors');
 const objdb = require('./lib/time-objects-db.js');
 const bodyParser = require('body-parser');
 const compression = require('compression');
+const path = require('path');
+const config = require('./config.json');
 
-let database = "4c49c2a0-11fa-11ea-969b-5f0da336b8d7" ;//require('uuid/v1')();
-let debug = false;
-let tp = new objdb({"basepath": __dirname + "/data/"});
+let debug = config.debug;
+let mainFolder;
+if (config.mainFolder == "__dirname") { mainFolder = __dirname} else { mainFolder = config.mainFolder}
+
+let tp = new objdb({
+  "basepath": path.resolve(mainFolder, config.dataFolder) + "/",
+  "limit" : config.searchResultLimit 
+});
 
 var onindex = function (indexfile) {
    console.log("Index has been updated: " + indexfile);
@@ -22,7 +29,7 @@ var onread = function (metric, fr, to) {
 app.use(compression());
 app.disable('x-powered-by');
 app.use(cors());
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: config.bodyParserLimit}));
 app.use('/doc', express.static(__dirname + '/doc'));
 app.use(function(error, req, res, next) {
   if (error instanceof SyntaxError) {
@@ -46,10 +53,8 @@ app.get('/', function(req, res) {
 });
 
 app.get('/contract', function(req, res) {
-  res.sendFile(__dirname + '/doc/swagger.yaml');
+  res.sendFile(__dirname + '/doc/openapi.yaml');
 });
-
-
 
 app.get('/v1/health', function(req, res) {
   let start = process.hrtime();
@@ -62,105 +67,6 @@ app.get('/v1/health', function(req, res) {
     res.status(200).send(result);
 });
 
-app.delete('/v1/databases/:databaseId', function(req, res) {
-  let databaseId = req.params.databaseId.trim();
-  let token = req.header('token');
-
-  if (!checkSignature (databaseId, token)) {
-    res.status(403).send(newErrorObject("403", "Forbidden, invalid token header.", "ERROR", ""));
-    return;
-  }
-  
-  tp.setDatabaseId(databaseId);
-  tp.deleteDatabase().then(data => {
-    res.status(204).send();
-  }).catch(error => {
-    if (error.msg == "404") {
-      res.status(404).send(newErrorObject("404", "Database doesn't exist", "ERROR", ""));
-    } else {
-      console.log(error);
-      res.status(500).send(newErrorObject("500", "Internal Server Error", "ERROR", ""));
-    }
-  });
-});
-
-app.delete('/v1/databases/:databaseId/metrics/:metricId', function(req, res) {
-  let metric = req.params.metricId.trim();
-  let databaseId = req.params.databaseId.trim();
-  let token = req.header('token');
-
-  if (!checkSignature (databaseId, token)) {
-    res.status(403).send(newErrorObject("403", "Forbidden, invalid token header.", "ERROR", ""));
-    return;
-  }
-
-  var reg = new RegExp("^[0-9a-zA-Z-]+$");
-  if (metric.length == 0 || !reg.test(metric)) {
-    res.status(400).send("The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
-    return;
-  }
-
-  var reg = new RegExp("^[0-9a-zA-Z-]+$");
-  if (databaseId.length == 0 || !reg.test(databaseId)) {
-    res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
-    return;
-  }
-  
-  tp.setDatabaseId(databaseId);
-  tp.deleteMetric(metric).then(data => {
-    res.status(204).send();
-  }).catch(error => {
-    if (error.msg == "404") {
-      res.status(404).send(newErrorObject("404", "Metric doesn't exist", "ERROR", ""));
-    } else {
-      console.log(error);
-      res.status(500).send(newErrorObject("500", "Internal Server Error", "ERROR", ""));
-    }
-  });
-});
-
-app.delete('/v1/databases/:databaseId/metrics/:metricId/objects/:objectId', function(req, res) {
-  let metricId = req.params.metricId.trim();;
-  let objectId = req.params.objectId.trim();;
-  let databaseId = req.params.databaseId.trim();
-  let token = req.header('token');
-
-  if (!checkSignature (databaseId, token)) {
-    res.status(403).send(newErrorObject("403", "Forbidden, invalid token header.", "ERROR", ""));
-    return;
-  }
-
-  var reg = new RegExp("^[0-9a-zA-Z-]+$");
-  if (metricId.length == 0 || !reg.test(metricId)) {
-    res.status(400).send("The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
-    return;
-  }
-
-  if (isNaN(objectId)) {
-    res.status(400).send(newErrorObject("400", "Bad Request", "ERROR", "The \"tm\" query parameter need to be a epoc datetime number"));
-    return;
-  }
-  objectId = parseInt(objectId);
-
-  var reg = new RegExp("^[0-9a-zA-Z-]+$");
-  if (databaseId.length == 0 || !reg.test(databaseId)) {
-    res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
-    return;
-  }
-  
-  tp.setDatabaseId(databaseId);
-  tp.delete(metricId, objectId).then(data => {
-    res.status(204).send();
-  }).catch(error => {
-    if (error.msg == "404") {
-      res.status(404).send(newErrorObject("404", "Metric-Value doesn't exist", "ERROR", ""));
-    } else {
-      console.log(error);
-      res.status(500).send(newErrorObject("500", "Internal Server Error", "ERROR", ""));
-    }
-  });
-});
-
 app.get('/v1/databases/:databaseId/metrics/:metricId/events', function(req, res) {
   let result = {};
   try {
@@ -169,13 +75,13 @@ app.get('/v1/databases/:databaseId/metrics/:metricId/events', function(req, res)
     let databaseId = req.params.databaseId.trim();
 
     var reg = new RegExp("^[0-9a-zA-Z-]+$");
-    if (metricId.length == 0 || !reg.test(metricId)) {
+    if (metricId == 'undefined' || metricId.length == 0 || !reg.test(metricId)) {
       res.status(400).send(newErrorObject("400", "Bad Request", "ERROR", "The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters"));
       return;
     }
 
     var reg = new RegExp("^[0-9a-zA-Z-]+$");
-    if (databaseId.length == 0 || !reg.test(databaseId)) {
+    if (databaseId == 'undefined' || databaseId.length == 0 || !reg.test(databaseId)) {
       res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
       return;
     }
@@ -257,15 +163,29 @@ app.post('/v1/databases/:databaseId/metrics/:metricId/objects', function(req, re
     var start = process.hrtime();
     var obj = req.body;
     var metricId = req.params.metricId.trim();
+    var databaseId = req.params.databaseId.trim();
     let token = req.header('token');
+    let action = req.header('x-action');
+
+
+    var reg = new RegExp("^[0-9a-zA-Z-]+$");
+    if (databaseId == 'undefined' || databaseId.length == 0 || !reg.test(databaseId)) {
+      res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
+      return;
+    }
 
     if (!checkSignature (databaseId, token)) {
-      res.status(403).send(newErrorObject("403", "Forbidden, invalid token header.", "ERROR", ""));
+      res.status(403).send(newErrorObject("403", "Forbidden. Invalid token header.", "ERROR", ""));
+      return;
+    }
+
+    if (action != 'single' && action!= 'bulk') {
+      res.status(400).send("The \"X-Action\" header parameter can't be empty. Accepted values are single or bulk");
       return;
     }
 
     var reg = new RegExp("^[0-9a-zA-Z-]+$");
-    if (metricId.length == 0 || !reg.test(metricId)) {
+    if (metricId == 'undefined' || metricId.length == 0 || !reg.test(metricId)) {
       res.status(400).send(newErrorObject("400", "Bad Request", "ERROR", "The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters"));
       return;
     }
@@ -280,33 +200,81 @@ app.post('/v1/databases/:databaseId/metrics/:metricId/objects', function(req, re
       return;
     }
 
-    let databaseId = req.params.databaseId;
-    var reg = new RegExp("^[0-9a-zA-Z-]+$");
-    if (databaseId.length == 0 || !reg.test(databaseId)) {
-      res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
-      return;
-    }
-    
     tp.setDatabaseId(databaseId);
-    tp.insert(metricId, obj.tm, obj.data).then(data => {
-      result.data = obj.data;
-      result.tm = obj.tm;
-      if (debug) {
-        result.debug = data;
-        result.stats = getStats(start);
-      }
 
-      res.status(201).send(result);
-    }).catch(error => {
-      console.log(error);
-      res.status(500).send(newErrorObject("500", "Internal Server Error", "ERROR", ""));
-    });
+    if (action=="single"){
+      tp.insert(metricId, obj.tm, obj.data).then(data => {
+        result.data = obj.data;
+        result.tm = obj.tm;
+        if (debug) {
+          result.debug = data;
+          result.stats = getStats(start);
+        }
+        res.status(201).send(result);
+      }).catch(error => {
+        console.log(error);
+        res.status(500).send(newErrorObject("500", "Internal Server Error", "ERROR", ""));
+      });
+    }
 
+    if (action=="bulk"){
+      (async(tp, metricId, values) => {
+        let result = [];
+        for(var i=0; i<values.length;i++) {
+          try {
+            let v = values[i];
+            let res = await tp.insert(metricId, parseInt(v[0]), v[1]).catch(err => {
+              console.log (err);
+              result.push (err);
+            });
+            result.push (res);
+          } catch (e) {
+            result.push ('500');
+            console.log (err);
+          }
+        }
+        return result;
+      })(tp, metricId, obj.data).then(data => {
+        result.data = data;
+        if (debug) {
+          result.stats = getStats(start);
+        }
+        res.status(201).send(result);
+      });
+
+/*
+      execSyncPromises(tp, ap).then(data => {
+        result.data = data;
+        if (debug) {
+          result.stats = getStats(start);
+        }
+
+        res.status(201).send(result);
+      });
+*/
+    }
   } catch (e) {
     console.log(e);
     res.status(500).send(newErrorObject("500", "Internal Server Error", "ERROR", ""));
   }
 });
+
+/*
+async function execSyncPromises(p, values) {
+  let result = [];
+  for(var i=0; i<values.length;i++) {
+    let v = values[i];
+    let res = await p.insert(v[0], v[1], v[2]).catch(err => {
+    //let res = await tp.insert(p[0], p[1], p[2]).catch(err => {
+    //let res = await p.catch(err => {
+      console.log (err)
+      result.push (err);
+    });
+    result.push (res);
+  }
+  return result;
+};
+*/
 
 app.get('/v1/databases/:databaseId/metrics/:metricId/objects', function(req, res) {
   let result = {};
@@ -324,11 +292,10 @@ app.get('/v1/databases/:databaseId/metrics/:metricId/objects', function(req, res
     }
 
     var reg = new RegExp("^[0-9a-zA-Z-]+$");
-    if (databaseId.length == 0 || !reg.test(databaseId)) {
+    if (databaseId == 'undefined' || databaseId.length == 0 || !reg.test(databaseId)) {
       res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
       return;
     }
-
 
     var reg = new RegExp("^[0-9a-zA-Z-]+$");
     if (metric.length == 0 || !reg.test(metric)) {
@@ -367,6 +334,121 @@ app.get('/v1/databases/:databaseId/metrics/:metricId/objects', function(req, res
   }
 });
 
+app.delete('/v1/databases/:databaseId', function(req, res) {
+  let databaseId = req.params.databaseId.trim();
+  let token = req.header('token');
+
+  if (!checkSignature (databaseId, token)) {
+    res.status(403).send(newErrorObject("403", "Forbidden. Invalid token header.", "ERROR", ""));
+    return;
+  }
+  
+  tp.setDatabaseId(databaseId);
+  tp.deleteDatabase().then(data => {
+    res.status(204).send();
+  }).catch(error => {
+    if (error.msg == "404") {
+      res.status(404).send(newErrorObject("404", "Database doesn't exist", "ERROR", ""));
+    } else {
+      console.log(error);
+      res.status(500).send(newErrorObject("500", "Internal Server Error", "ERROR", ""));
+    }
+  });
+});
+
+app.delete('/v1/databases/:databaseId/metrics/:metricId', function(req, res) {
+  let metric = req.params.metricId.trim();
+  let databaseId = req.params.databaseId.trim();
+  let token = req.header('token');
+
+  if (!checkSignature (databaseId, token)) {
+    res.status(403).send(newErrorObject("403", "Forbidden. Invalid token header.", "ERROR", ""));
+    return;
+  }
+
+  var reg = new RegExp("^[0-9a-zA-Z-]+$");
+  if (metric.length == 0 || !reg.test(metric)) {
+    res.status(400).send("The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
+    return;
+  }
+
+  var reg = new RegExp("^[0-9a-zA-Z-]+$");
+  if (databaseId == 'undefined' || databaseId.length == 0 || !reg.test(databaseId)) {
+    res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
+    return;
+  }
+  
+  tp.setDatabaseId(databaseId);
+  tp.deleteMetric(metric).then(data => {
+    res.status(204).send();
+  }).catch(error => {
+    if (error.msg == "404") {
+      res.status(404).send(newErrorObject("404", "Metric doesn't exist", "ERROR", ""));
+    } else {
+      console.log(error);
+      res.status(500).send(newErrorObject("500", "Internal Server Error", "ERROR", ""));
+    }
+  });
+});
+
+app.delete('/v1/databases/:databaseId/metrics/:metricId/objects/:objectId', function(req, res) {
+  let metricId = req.params.metricId.trim();;
+  let objectId = req.params.objectId.trim();;
+  let databaseId = req.params.databaseId.trim();
+  let token = req.header('token');
+
+  var reg = new RegExp("^[0-9a-zA-Z-]+$");
+  if (databaseId == 'undefined' || databaseId.length == 0 || !reg.test(databaseId)) {
+    res.status(400).send("The \"databaseId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
+    return;
+  }
+
+  if (!checkSignature (databaseId, token)) {
+    res.status(403).send(newErrorObject("403", "Forbidden. Invalid token header.", "ERROR", ""));
+    return;
+  }
+
+  var reg = new RegExp("^[0-9a-zA-Z-]+$");
+  if (metricId == 'undefined' || metricId.length == 0 || !reg.test(metricId)) {
+    res.status(400).send("The \"metricId\" path parameter can't be empty and only could be contain 0 to 9,a to z,A to Z and - characters");
+    return;
+  }
+
+  if (isNaN(objectId)) {
+    res.status(400).send(newErrorObject("400", "Bad Request", "ERROR", "The \"tm\" query parameter need to be a epoc datetime number"));
+    return;
+  }
+  objectId = parseInt(objectId);
+
+  tp.setDatabaseId(databaseId);
+  tp.delete(metricId, objectId).then(data => {
+    res.status(204).send();
+  }).catch(error => {
+    if (error.msg == "404") {
+      res.status(404).send(newErrorObject("404", "Metric-Value doesn't exist", "ERROR", ""));
+    } else {
+      console.log(error);
+      res.status(500).send(newErrorObject("500", "Internal Server Error", "ERROR", ""));
+    }
+  });
+});
+
+var server = app.listen(config.port, function() {
+  //clean console
+  process.stdout.write('\x1Bc');
+  let banner = "";
+  banner+= "  _   _                         _     _           _          _ _     \n";
+  banner+= " | | (_)                       | |   (_)         | |        | | |    \n";
+  banner+= " | |_ _ _ __ ___   ___     ___ | |__  _  ___  ___| |_     __| | |__  \n";
+  banner+= " | __| | '_ ` _ \\ / _ \\   / _ \\| '_ \\| |/ _ \\/ __| __|   / _` | '_ \\ \n";
+  banner+= " | |_| | | | | | |  __/  | (_) | |_) | |  __/ (__| |_   | (_| | |_) |\n";
+  banner+= "  \\__|_|_| |_| |_|\\___|   \\___/|_.__/| |\\___|\\___|\\__|   \\__,_|_.__/ \n";
+  banner+= "                                    _/ |                             \n";
+  banner+= "                                   |__/                              \n";
+  console.log (banner);
+  console.log("Server Running on port " + server.address().port);
+})
+
 function getStats(hrstart) {
   let stats = {}
   stats.memoryUsage = {};
@@ -378,10 +460,6 @@ function getStats(hrstart) {
   stats.executionTime = hrend[0] + "." + (parseInt(hrend[1] / 1000000)) + " s";
   return stats;
 }
-
-var server = app.listen(8000, function() {
-  console.log("Server Running on port " + server.address().port);
-})
 
 function newErrorObject(code, description, level, message) {
   let result = {};
@@ -399,7 +477,7 @@ function checkSignature (databaseId, token){
 
 function getSignature(databaseId) {
   var crypto = require('crypto');
-  var hmac = crypto.createHmac('sha256', '645267556B58703273357638792F423F4528472B4B6250655368566D59713374');
+  var hmac = crypto.createHmac('sha256', config.secretKey);
   var data = hmac.update(databaseId);
   var gen_hmac= data.digest('hex');
   return gen_hmac;

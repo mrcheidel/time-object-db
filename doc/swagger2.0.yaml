@@ -45,7 +45,7 @@ paths:
         - application/json
       tags:
         - Objects
-      operationId: resourceListEnquiry
+      operationId: findObjects
       parameters:
         - name: token
           in: header
@@ -103,7 +103,7 @@ paths:
         - application/json
       tags:
         - Objects
-      operationId: metricCreationEnquiry
+      operationId: insertObject
       parameters:
         - name: token
           in: header
@@ -155,7 +155,7 @@ paths:
         - text/event-stream
       tags:
         - Metrics
-      operationId: resourceListenerEnquiry
+      operationId: metricEvents
       parameters:
         - name: databaseId
           in: path
@@ -225,7 +225,7 @@ paths:
         - application/json
       tags:
         - Databases
-      operationId: metricDelete
+      operationId: deleteDatabase
       parameters:
         - name: token
           in: header
@@ -269,7 +269,7 @@ paths:
         - application/json
       tags:
         - Metrics
-      operationId: databaseDelete
+      operationId: deleteMetric
       parameters:
         - name: token
           in: header
@@ -316,7 +316,7 @@ paths:
         - application/json
       tags:
         - Objects
-      operationId: resourceDelete
+      operationId: deleteObject
       parameters:
         - name: token
           in: header
