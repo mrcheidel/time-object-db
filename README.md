@@ -6,7 +6,7 @@ author: Claudio Heidel Schemberger
 
 # Welcome to time-object-db 
 
-Current version: 1.0.6
+Current version: 1.0.7
 
 ## Challenge:
 
@@ -22,6 +22,24 @@ The main features of the time-object-db are:
 - Fetch metric objects from a period time (between fromEpoc and toEpoc).
 - Delete metric objects from a specific time value.
 - Complete clean a metric collection
+
+## Solution:
+
+![](doc/diagram.png)
+
+time-object-db use single files in order to persist the information splitted in three levels:
+
+- Level 1: YYYY-MM (Max 12 folders per year)
+- Level 2: DD (Max 365 folders per parent)
+- Level 3: One file each 5 minutes - (Max 144 files per parent) (configurable) 
+
+Exist an index file per each Level 1 and 2 folders, these indexes help to find existing Level 3 files and prevent to use a full-scan to find the existing files.
+
+## How to Scale:
+  
+![](doc/scale.png)
+
+## Events:
 
 This database emit 7 events
 
@@ -119,16 +137,6 @@ You could be use the [Postman tool](https://www.getpostman.com/) in order to tes
 
 Find the [Postman collection and examples](https://github.com/mrcheidel/time-object-db/tree/master/test) that you could be import into the postman.
 
-## Solution:
-
-time-object-db use single files in order to persist the information splitted in three levels:
-
-- Level 1: YYYY-MM (Max 12 folders per year)
-- Level 2: DD (Max 365 folders per parent)
-- Level 3: One file each 5 minutes - (Max 144 files per parent) (configurable) 
-
-Exist an index file per each Level 1 and 2 folders, these indexes help to find existing Level 3 files and prevent to use a full-scan to find the existing files.
-  
 ## Todo
 
 List of pending points
