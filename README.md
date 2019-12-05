@@ -6,7 +6,7 @@ author: Claudio Heidel Schemberger
 
 # Welcome to time-object-db 
 
-Current version: 1.0.7
+Current version: 1.0.8
 
 ## Challenge:
 
@@ -142,9 +142,9 @@ Find the [Postman collection and examples](https://github.com/mrcheidel/time-obj
 List of pending points
 
 - Implement the **checkIndex** like a health functionality with re-creation index option.
-- Event propagation between diferent server instances 
-- <s>Server Sent Events API in order to expose events through continuous query approach.</s>
 - Backup & Restore API.
+- <s>Event propagation between diferent server instances</s>
+- <s>Server Sent Events API in order to expose events through continuous query approach.</s>
 - <s>health check endpoint.</s>
 - <s>Client code for Node.js.</s>
 
