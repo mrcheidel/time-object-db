@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 'use strict';
 
 const express = require('express');
@@ -19,7 +20,7 @@ if (cluster.isMaster && config.useCluster) {
 } else {
 
   let debug = config.debug;
-  let mainFolder;
+  let mainFolder, portNumber;
   if (config.mainFolder == "__dirname") { mainFolder = __dirname} else { mainFolder = config.mainFolder}
 
   let tp = new objdb({
@@ -71,7 +72,8 @@ if (cluster.isMaster && config.useCluster) {
         "apiVersion": "1.0.7",
         "description": "Time Object Db",
         "systemTimestampDate": new Date().rfc3339(),
-        "stats": getStats(start)
+        "stats": getStats(start),
+        "port": portNumber
       }
       res.status(200).send(result);
   });
@@ -425,7 +427,7 @@ if (cluster.isMaster && config.useCluster) {
 
 freeport(config.port).then(([freep]) => {
   var server = app.listen(freep, function() {
-    //clean console
+    portNumber = freep;
     process.stdout.write('\x1Bc');
     let banner = "";
     banner+= "  _   _                         _     _           _          _ _     \n";
