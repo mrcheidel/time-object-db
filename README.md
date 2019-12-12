@@ -39,6 +39,12 @@ Exist an index file per each Level 1 and 2 folders, these indexes help to find e
   
 ![](doc/scale.png)
 
+## Self Cluster Load Balancer:
+
+If you enamble the cluster option, see the **config.json** file, the below load balancer feature is included out-of-the-box.
+
+![](doc/loadbalancer.png)
+
 ## Events:
 
 This database emit 7 events

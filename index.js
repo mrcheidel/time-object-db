@@ -466,7 +466,7 @@ if (cluster.isMaster && config.useCluster) {
 		  console.log('Max file descriptors [ulimit]: ' + stdout);
 		})
 
-		process.send({ url: url });
+		if (config.useCluster) process.send({ url: url });
 
 	  })
 	}).catch((err)=>{
