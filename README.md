@@ -45,6 +45,8 @@ If you enamble the cluster option, see the **config.json** file, the below load 
 
 ![](doc/loadbalancer.png)
 
+![](doc/roundbin-inaction.png)
+
 ## Events:
 
 This database emit 7 events
