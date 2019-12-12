@@ -87,7 +87,7 @@ if (cluster.isMaster && config.useCluster) {
   app.get('/v1/health', function(req, res) {
     let start = process.hrtime();
     let result = {
-        "apiVersion": "1.0.8",
+        "apiVersion": require('./package.json').version,
         "description": "Time Object Db",
         "systemTimestampDate": new Date().rfc3339(),
         "stats": getStats(start),

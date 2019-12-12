@@ -6,7 +6,7 @@ info:
   contact:
     name: Claudio Heidel Schemberger
     url: https://www.linkedin.com/in/mrcheidel/
-  version: 1.0.8
+  version: 1.0.9
 servers:
 - url: https://time-object-db.claudioheidel.repl.co/v1
 tags:

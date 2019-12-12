@@ -6,7 +6,7 @@ author: Claudio Heidel Schemberger
 
 # Welcome to time-object-db 
 
-Current version: 1.0.8
+Current version: 1.0.9
 
 ## Challenge:
 
@@ -155,6 +155,7 @@ List of pending points
 - <s>Server Sent Events API in order to expose events through continuous query approach.</s>
 - <s>health check endpoint.</s>
 - <s>Client code for Node.js.</s>
+- <s>Self Load Balancer.</s>
 
 ## Links
 
