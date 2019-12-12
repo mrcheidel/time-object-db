@@ -9,15 +9,34 @@ const compression = require('compression');
 const path = require('path');
 const config = require('./config.json');
 const cluster = require('cluster');
-const freeport = require("find-free-port")
+const freeport = require('find-free-port');
+const proxy = require('express-http-proxy');
+
+var rr = 0;
+var nodes = [];
+
+function selectNode() {
+  if (rr >= nodes.length-1) {rr = 0} else {rr++}
+  return nodes[rr];
+}
 
 if (cluster.isMaster && config.useCluster) {
-    var cpuCount = require('os').cpus().length;
-    for (var i = 0; i < cpuCount; i += 1) {
-        cluster.fork();
-    }
-} else {
+	app.use('/', proxy(selectNode));
+	var server = app.listen(config.port, function() {
+		console.log("Time Object Database load balancer : " + config.protocol + "://" + config.hostname + ":" + server.address().port);
+	});
 
+    var cpuCount = require('os').cpus().length;
+    for (var i = 1; i < cpuCount; i += 1) {
+      let worker = cluster.fork();
+	  worker.on('message', function(msg) {
+	    if (msg.url) {
+		  nodes.push(msg.url);
+		}
+	  });  
+    }
+   
+} else {
   let debug = config.debug;
   let mainFolder, portNumber;
   if (config.mainFolder == "__dirname") { mainFolder = __dirname} else { mainFolder = config.mainFolder}
@@ -424,34 +443,35 @@ if (cluster.isMaster && config.useCluster) {
   });
 
 
-freeport(config.port).then(([freep]) => {
-  var server = app.listen(freep, function() {
-    portNumber = freep;
-    process.stdout.write('\x1Bc');
-    let banner = "";
-    banner+= "  _   _                         _     _           _          _ _     \n";
-    banner+= " | | (_)                       | |   (_)         | |        | | |    \n";
-    banner+= " | |_ _ _ __ ___   ___     ___ | |__  _  ___  ___| |_     __| | |__  \n";
-    banner+= " | __| | '_ ` _ \\ / _ \\   / _ \\| '_ \\| |/ _ \\/ __| __|   / _` | '_ \\ \n";
-    banner+= " | |_| | | | | | |  __/  | (_) | |_) | |  __/ (__| |_   | (_| | |_) |\n";
-    banner+= "  \\__|_|_| |_| |_|\\___|   \\___/|_.__/| |\\___|\\___|\\__|   \\__,_|_.__/ \n";
-    banner+= "                                    _/ |                             \n";
-    banner+= "                                   |__/                              \n";
-    console.log (banner);
-    console.log("Server running on port " + server.address().port);
-    console.log ("Server CPU's: " + require('os').cpus().length);
+	freeport(config.port + 1).then(([freep]) => {
+	  var server = app.listen(freep, function() {
+		portNumber = freep;
+		process.stdout.write('\x1Bc');
+		let banner = "";
+		banner+= "  _   _                         _     _           _          _ _     \n";
+		banner+= " | | (_)                       | |   (_)         | |        | | |    \n";
+		banner+= " | |_ _ _ __ ___   ___     ___ | |__  _  ___  ___| |_     __| | |__  \n";
+		banner+= " | __| | '_ ` _ \\ / _ \\   / _ \\| '_ \\| |/ _ \\/ __| __|   / _` | '_ \\ \n";
+		banner+= " | |_| | | | | | |  __/  | (_) | |_) | |  __/ (__| |_   | (_| | |_) |\n";
+		banner+= "  \\__|_|_| |_| |_|\\___|   \\___/|_.__/| |\\___|\\___|\\__|   \\__,_|_.__/ \n";
+		banner+= "                                    _/ |                             \n";
+		banner+= "                                   |__/                              \n";
+		console.log (banner);
+		let url = config.protocol + "://" + config.hostname + ":" + server.address().port;
+		console.log("Server running on: " + url);
+		console.log ("Server CPU's: " + require('os').cpus().length);
 
-    var chieldProc = require('child_process');
-    chieldProc.exec('ulimit -n', function (error, stdout, stderr) {
-      console.log('Max file descriptors [ulimit]: ' + stdout);
-    })
+		var chieldProc = require('child_process');
+		chieldProc.exec('ulimit -n', function (error, stdout, stderr) {
+		  console.log('Max file descriptors [ulimit]: ' + stdout);
+		})
 
-  })
-}).catch((err)=>{
-    console.error(err);
-});
+		process.send({ url: url });
 
-
+	  })
+	}).catch((err)=>{
+		console.error(err);
+	});
 
 }
 
