@@ -4,6 +4,8 @@ author: Claudio Heidel Schemberger
 ---
 <link rel="stylesheet" type="text/css" media="all" href="doc/style.css" />
 
+[![Run on Repl.it](https://repl.it/badge/github/mrcheidel/time-object-db)](https://repl.it/github/mrcheidel/time-object-db)
+
 # Welcome to time-object-db 
 
 Current version: 1.0.9
@@ -36,7 +38,7 @@ time-object-db use single files in order to persist the information splitted in 
 Exist an index file per each Level 1 and 2 folders, these indexes help to find existing Level 3 files and prevent to use a full-scan to find the existing files.
 
 ## How to Scale:
-  
+
 ![](doc/scale.png)
 
 ## Self Cluster Load Balancer:

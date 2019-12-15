@@ -8,10 +8,12 @@ body {
   color: #333;
 }
 
-img {
-  height: 60%;
-  width: 60%;
+
+img { 
+    max-width: 100%;
+    height: auto;
 }
+
 
 
 pre {
