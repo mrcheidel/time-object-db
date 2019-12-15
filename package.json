@@ -18,9 +18,9 @@
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "express-http-proxy": "^1.6.0",
     "find-free-port": "^2.0.0",
     "fs-extra": "^8.1.0",
+    "http-proxy": "^1.18.0",
     "showdown": "^1.9.1",
     "uuid": "^3.3.3"
   }

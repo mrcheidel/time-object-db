@@ -10,7 +10,8 @@ const path = require('path');
 const config = require('./config.json');
 const cluster = require('cluster');
 const freeport = require('find-free-port');
-const proxy = require('express-http-proxy');
+const http = require('http');
+const httpProxy = require('http-proxy');
 
 var rr = 0;
 var nodes = [];
@@ -21,8 +22,13 @@ function selectNode() {
 }
 
 if (cluster.isMaster && config.useCluster) {
-	app.use('/', proxy(selectNode));
-	var server = app.listen(config.port, function() {
+
+    var proxy = httpProxy.createProxyServer({});
+    var keepAliveAgent = new http.Agent({keepAlive: true});
+	var server = http.createServer(function(req, res) {
+	  proxy.web(req, res, {target: selectNode(), agent: keepAliveAgent});
+	});
+	server.listen({port: config.port},function() {
 		console.log("Time Object Database load balancer : " + config.protocol + "://" + config.hostname + ":" + server.address().port);
 	});
 
@@ -94,6 +100,7 @@ if (cluster.isMaster && config.useCluster) {
         "port": portNumber
       }
       res.status(200).send(result);
+
   });
 
   app.get('/v1/databases/:databaseId/metrics/:metricId/events', function(req, res) {
@@ -228,7 +235,12 @@ if (cluster.isMaster && config.useCluster) {
         res.status(400).send(newErrorObject("400", "Bad Request", "ERROR", "The \"tm\" body property need to be a epoc datetime number"));
         return;
       }
-
+      
+      if (typeof obj.data === 'undefined') {
+        res.status(400).send(newErrorObject("400", "Bad Request", "ERROR", "The \"data\" body need to be an Object"));
+        return;
+      }
+  
       tp.setDatabaseId(databaseId);
 
       if (action=="single"){
@@ -443,7 +455,8 @@ if (cluster.isMaster && config.useCluster) {
   });
 
 
-	freeport(config.port + 1).then(([freep]) => {
+
+	freeport(config.port + (config.useCluster ? 1 : 0)).then(([freep]) => {
 	  var server = app.listen(freep, function() {
 		portNumber = freep;
 		process.stdout.write('\x1Bc');
