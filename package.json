@@ -20,7 +20,7 @@
     "express": "^4.17.1",
     "find-free-port": "^2.0.0",
     "fs-extra": "^8.1.0",
-    "http-proxy": "^1.18.0",
+    "http-proxy": "^1.18.1",
     "showdown": "^1.9.1",
     "uuid": "^3.3.3"
   }
