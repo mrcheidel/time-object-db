@@ -78,6 +78,19 @@ npm install
 node index.js
 ```
 
+### How to use with Docker 
+
+```bash
+docker run -p 8000:8000 -t mrcheidel/time-object-db-image
+```
+
+If you want map the data folder to an local or network folder
+
+```bash
+docker run -d --name time-object-db-instance -h time-object-db-instance -v $(pwd)/data-volume:/app/data -p 8000:8000 -t mrcheidel/time-object-db-image
+```
+
+
 ### How to use - From Node.js: 
 
 [Run this demo](https://repl.it/@ClaudioHeidel/todb-js)
@@ -136,7 +149,7 @@ const myObj2 =  {place: 'Jardín Botánico', address: 'Plaza de Murillo, 2', lat
 
 This database may be used directly from your own node.js code or via RESTful API calls.
 
-<a href="https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract" target="_blank">View & Execute the API contract</a>
+<a href="https://editor.swagger.io/?url=http://localhost:8000/contract" target="_blank">View & Execute the API contract</a>
 
 
 ![](doc/titulo.png)
@@ -161,9 +174,9 @@ List of pending points
 
 ## Links
 
-Server Dev Page : [Repl.it](https://repl.it/@ClaudioHeidel/time-object-db)
+Docker: [Docker Hub](https://hub.docker.com/repository/docker/mrcheidel/time-object-db-image)
 
-Online Demo: [View & Execute the API contract](https://editor.swagger.io/?url=https://time-object-db.claudioheidel.repl.co/contract)
+API Contract: [View & Execute the API contract](https://editor.swagger.io/?url=http://localhost:8000/contract)
 
 Source Code: [Github]( https://github.com/mrcheidel/time-object-db)
 

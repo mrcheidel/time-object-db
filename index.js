@@ -33,7 +33,8 @@ if (cluster.isMaster && config.useCluster) {
 	});
 
     var cpuCount = require('os').cpus().length;
-    for (var i = 1; i < cpuCount; i += 1) {
+
+    for (var i = 0; i < cpuCount; i += 1) {
       let worker = cluster.fork();
 	  worker.on('message', function(msg) {
 	    if (msg.url) {
@@ -459,7 +460,7 @@ if (cluster.isMaster && config.useCluster) {
 	freeport(config.port + (config.useCluster ? 1 : 0)).then(([freep]) => {
 	  var server = app.listen(freep, function() {
 		portNumber = freep;
-		process.stdout.write('\x1Bc');
+		//process.stdout.write('\x1Bc');
 		let banner = "";
 		banner+= "  _   _                         _     _           _          _ _     \n";
 		banner+= " | | (_)                       | |   (_)         | |        | | |    \n";

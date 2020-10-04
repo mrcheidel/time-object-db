@@ -3,6 +3,7 @@
   "author": "Claudio Heidel Schemberger",
   "name": "time-object-db",
   "version": "1.0.9",
+  "license" : "Contact with the Author",
   "repository": {
     "type": "git",
     "url": "https://github.com/mrcheidel/time-object-db.git"
