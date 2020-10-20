@@ -21,20 +21,21 @@ function selectNode() {
   return nodes[rr];
 }
 
-if (cluster.isMaster && config.useCluster) {
+var cpuCount = require('os').cpus().length;
 
+
+if (cluster.isMaster && config.useCluster && cpuCount > 1) {
     var proxy = httpProxy.createProxyServer({});
     var keepAliveAgent = new http.Agent({keepAlive: true});
 	var server = http.createServer(function(req, res) {
 	  proxy.web(req, res, {target: selectNode(), agent: keepAliveAgent});
 	});
 	server.listen({port: config.port},function() {
-		console.log("Time Object Database load balancer : " + config.protocol + "://" + config.hostname + ":" + server.address().port);
+		showBanner();
+		console.log("Load balancer : " + config.protocol + "://" + config.hostname + ":" + server.address().port);
 	});
 
-    var cpuCount = require('os').cpus().length;
-
-    for (var i = 0; i < cpuCount; i += 1) {
+    for (var i = 0; i < cpuCount-1; i += 1) {
       let worker = cluster.fork();
 	  worker.on('message', function(msg) {
 	    if (msg.url) {
@@ -456,38 +457,44 @@ if (cluster.isMaster && config.useCluster) {
   });
 
 
-
-	freeport(config.port + (config.useCluster ? 1 : 0)).then(([freep]) => {
+	freeport(config.port + ((config.useCluster && cpuCount > 1) ? 1 : 0)).then(([freep]) => {
 	  var server = app.listen(freep, function() {
 		portNumber = freep;
-		//process.stdout.write('\x1Bc');
-		let banner = "";
-		banner+= "  _   _                         _     _           _          _ _     \n";
-		banner+= " | | (_)                       | |   (_)         | |        | | |    \n";
-		banner+= " | |_ _ _ __ ___   ___     ___ | |__  _  ___  ___| |_     __| | |__  \n";
-		banner+= " | __| | '_ ` _ \\ / _ \\   / _ \\| '_ \\| |/ _ \\/ __| __|   / _` | '_ \\ \n";
-		banner+= " | |_| | | | | | |  __/  | (_) | |_) | |  __/ (__| |_   | (_| | |_) |\n";
-		banner+= "  \\__|_|_| |_| |_|\\___|   \\___/|_.__/| |\\___|\\___|\\__|   \\__,_|_.__/ \n";
-		banner+= "                                    _/ |                             \n";
-		banner+= "                                   |__/                              \n";
-		console.log (banner);
 		let url = config.protocol + "://" + config.hostname + ":" + server.address().port;
-		console.log("Server running on: " + url);
-		console.log ("Server CPU's: " + require('os').cpus().length);
-
-		var chieldProc = require('child_process');
-		chieldProc.exec('ulimit -n', function (error, stdout, stderr) {
-		  console.log('Max file descriptors [ulimit]: ' + stdout);
-		})
-
-		if (config.useCluster) process.send({ url: url });
-
+		//process.stdout.write('\x1Bc');
+		if (!config.useCluster || cpuCount == 1) {
+			showBanner();
+			console.log("Server running on: " + url);
+		} else {
+			console.log("Worker running on: " + url);
+			process.send({ url: url });
+		}
+		//if (config.useCluster && cpuCount > 1) 
 	  })
 	}).catch((err)=>{
 		console.error(err);
 	});
 
 }
+
+function showBanner(){
+	let banner = "";
+	banner+= "  _   _                         _     _           _          _ _     \n";
+	banner+= " | | (_)                       | |   (_)         | |        | | |    \n";
+	banner+= " | |_ _ _ __ ___   ___     ___ | |__  _  ___  ___| |_     __| | |__  \n";
+	banner+= " | __| | '_ ` _ \\ / _ \\   / _ \\| '_ \\| |/ _ \\/ __| __|   / _` | '_ \\ \n";
+	banner+= " | |_| | | | | | |  __/  | (_) | |_) | |  __/ (__| |_   | (_| | |_) |\n";
+	banner+= "  \\__|_|_| |_| |_|\\___|   \\___/|_.__/| |\\___|\\___|\\__|   \\__,_|_.__/ \n";
+	banner+= "                                    _/ |                             \n";
+	banner+= "                                   |__/                              \n";
+	console.log (banner);
+	console.log ("Server CPU's: " + cpuCount);
+	var chieldProc = require('child_process');
+	chieldProc.exec('ulimit -n', function (error, stdout, stderr) {
+	  console.log('Max file descriptors [ulimit]: ' + stdout);
+	})
+}
+
 
 function getStats(hrstart) {
   let stats = {}
