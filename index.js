@@ -9,7 +9,6 @@ const compression = require('compression');
 const path = require('path');
 const config = require('./config.json');
 const cluster = require('cluster');
-const freeport = require('find-free-port');
 const http = require('http');
 const httpProxy = require('http-proxy');
 
@@ -41,7 +40,7 @@ if (cluster.isMaster && config.useCluster && cpuCount > 1) {
 	    if (msg.url) {
 		  nodes.push(msg.url);
 		}
-	  });  
+	  }); 
     }
    
 } else {
@@ -456,24 +455,24 @@ if (cluster.isMaster && config.useCluster && cpuCount > 1) {
     });
   });
 
-
-	freeport(config.port + ((config.useCluster && cpuCount > 1) ? 1 : 0)).then(([freep]) => {
-	  var server = app.listen(freep, function() {
-		portNumber = freep;
-		let url = config.protocol + "://" + config.hostname + ":" + server.address().port;
-		//process.stdout.write('\x1Bc');
-		if (!config.useCluster || cpuCount == 1) {
-			showBanner();
-			console.log("Server running on: " + url);
-		} else {
-			console.log("Worker running on: " + url);
-			process.send({ url: url });
-		}
-		//if (config.useCluster && cpuCount > 1) 
-	  })
-	}).catch((err)=>{
-		console.error(err);
-	});
+  if (config.useCluster && cpuCount > 1) {
+	var freep = config.port + cluster.worker.id;
+  } else {
+	var freep = config.port;
+  }
+ 
+  var server = app.listen(freep, function() {
+	portNumber = freep;
+	let url = config.protocol + "://" + config.hostname + ":" + server.address().port;
+	//process.stdout.write('\x1Bc');
+	if (!config.useCluster || cpuCount == 1) {
+		showBanner();
+		console.log("Server running on: " + url);
+	} else {
+		console.log("Worker running on: " + url);
+		process.send({ url: url });
+	}
+  });
 
 }
 
