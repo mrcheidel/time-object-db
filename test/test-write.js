@@ -1,14 +1,15 @@
 const objdb = new require('.././lib/time-objects-db.js');
-    
-let metric = "metricId1";
-let qty = 1000;
+const fs = require('fs'); 
 
 var tp = new objdb({"basepath": __dirname + "/../data/"});
-console.log (tp.basepath);
+let databaseId = JSON.parse(fs.readFileSync('db-config.json', {encoding:'utf8', flag:'r'})).databaseId;           
+tp.setDatabaseId(databaseId);
 
+let metric = "metricId1";
+let qty = 100000;
 
 if (tp.metricExist(metric)){
-  tp.clear(metric).then(data => {
+  tp.deleteMetric(metric).then(data => {
     console.log ("Metric " + metric + " has been deleted.");
     insert(tp);
   }).catch (error => {
@@ -17,8 +18,6 @@ if (tp.metricExist(metric)){
 } else {
 	insert(tp);
 }
-
-
 
 async function insert(tp){
     let tm  = 1573720000;
@@ -29,14 +28,17 @@ async function insert(tp){
       var obj = {};
       obj.tm = tm + (i * 10) ;
       obj.firstName = "Claudio";
-      obj.lastName = "Heidel Schemberger";
+      obj.lastName = "Heidel";
       obj.gender = "Male";
       obj.department = "Architecture";
       obj.city = "Madrid";
       obj.country = "Spain";
-      await tp.insert (metric, obj.tm , obj).catch(err => {console.log (err)});
+      tp.insert (metric, obj.tm , obj).catch(err => {console.log (err)});
+      //await tp.insert (metric, obj.tm , obj).catch(err => {console.log (err)});
     }
 
+ 	var hrend = process.hrtime(hrstart);
+ 	
     let fr = tm +100;
     let to = tm +110;
     console.log ("fr: "+ fr + " to: " +to);
@@ -47,7 +49,8 @@ async function insert(tp){
       console.log (error);
     });
     
- 	var hrend = process.hrtime(hrstart);
+
 	console.log (hrend[0] + "." + (parseInt(hrend[1] / 1000000)) + " s");
 
+	return;
 }

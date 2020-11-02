@@ -25,6 +25,11 @@ var cpuCount = require('os').cpus().length;
 
 if (cluster.isMaster && config.useCluster && cpuCount > 1) {
     var proxy = httpProxy.createProxyServer({});
+	proxy.on('error', function(e) {
+	  console.log ("Proxy Error:");
+	  console.log (e);
+	});
+    
     var keepAliveAgent = new http.Agent({keepAlive: true});
 	var server = http.createServer(function(req, res) {
 	  proxy.web(req, res, {target: selectNode(), agent: keepAliveAgent});
@@ -95,6 +100,7 @@ if (cluster.isMaster && config.useCluster && cpuCount > 1) {
     let start = process.hrtime();
     let result = {
         "apiVersion": require('./package.json').version,
+        "coreVersion": tp.version,
         "description": "Time Object Db",
         "systemTimestampDate": new Date().rfc3339(),
         "stats": getStats(start),
@@ -304,6 +310,7 @@ if (cluster.isMaster && config.useCluster && cpuCount > 1) {
       var start = process.hrtime();
       let fr = req.query.fr;
       let to = req.query.to;
+      let filter = req.query.filter;
       let metric = req.params.metricId.trim();
       let databaseId = req.params.databaseId.trim();
       let token = req.header('token');
@@ -337,9 +344,28 @@ if (cluster.isMaster && config.useCluster && cpuCount > 1) {
 
       fr = parseInt(fr);
       to = parseInt(to);
+      
+      try {
+		  filter = filter.map(function(x){
+		    try {
+				let f = JSON.parse(x);
+				f.o = getOp(f.o);
+				return f;
+		    } catch (e) {
+		    	throw e;
+		    }
+		  });
+		  if (filter.length > 1){
+			filter = {lo: "&&", v: filter}
+		  }
+      } catch (e) {
+      	console.log ("Filter Error: " + e.message);
+        res.status(400).send(newErrorObject("400", "Bad Request", "ERROR", "The \"filter\" query parameter have errors"));
+        return;
+      }
 
       tp.setDatabaseId(databaseId);
-      tp.read(metric, fr, to).then(result => {
+      tp.read(metric, fr, to, filter).then(result => {
         if (debug) result.stats = getStats(start);
         res.status(200).send(result);
       }).catch(error => {
@@ -527,6 +553,41 @@ function getSignature(databaseId) {
   var data = hmac.update(databaseId);
   var gen_hmac= data.digest('hex');
   return gen_hmac;
+}
+
+function getOp(s) {
+	var x = null;
+	switch (s){
+	  case 'eq':
+	    x = '==';
+	    break;
+	  case 'ne':
+	    x = '!=';
+	    break;
+	  case 'gt':
+	    x = '>';
+	    break;
+	  case 'ge':
+	    x = '>=';
+	    break;
+	  case 'lt':
+	    x = '<';
+	    break;
+	  case 'le':
+	    x = '<=';
+	    break;
+	  case 'and':
+	    x = '&&';
+	    break;
+	  case 'or':
+	    x = '||';
+	    break;
+	  case 'not':
+	    x = '!';
+	    break;
+	  default:
+	}
+	return x;
 }
 
 Number.prototype.padLeft = function(base,chr){

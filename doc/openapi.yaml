@@ -6,9 +6,9 @@ info:
   contact:
     name: Claudio Heidel Schemberger
     url: https://www.linkedin.com/in/mrcheidel/
-  version: 1.0.9
+  version: 1.0.10
 servers:
-- url: https://time-object-db.claudioheidel.repl.co/v1
+- url: http://localhost:8000/v1
 tags:
 - name: Databases
 - name: Metrics
@@ -70,6 +70,29 @@ paths:
         required: true
         schema:
           type: number
+      - name: filter
+        in: query
+        required: false
+        schema:
+          oneOf:
+            - $ref: '#/components/schemas/singleFilterType'
+            - $ref: '#/components/schemas/multriFilterType'
+        examples:
+          singleFilterType:
+            value: 
+              m: fieldName
+              o: eq
+              v: anyValue
+          multriFilterType:
+            value: 
+              lo: "&&"
+              v: 
+                - m: fieldName
+                  o: eq
+                  v: anyValue
+                - m: fieldName2 
+                  o: eq
+                  v: anyValue2
       responses:
         200:
           description: OK - The list of resources was retrieved successfully and it
@@ -536,12 +559,69 @@ components:
             sports:
             - climbing
             - hiking
-
-   
     metricCreationResponse:
       type: object
       description: Resource identifier and link to the details of the resource that
         has just been created.
+        
+    multriFilterType:
+      type: object
+      properties:
+        lo:
+          type: string
+          enum:
+            - "&&"
+            - "||"
+          example: "&&"
+        v:
+          type: array
+          items:
+            $ref: '#/components/schemas/singleFilterType'
+      required:
+        - lo
+        - v
+            
+    singleFilterType:
+      title: singleFilterType
+      type: object
+      properties:
+        m:
+          type: string
+          description: Member / Field name
+          example: "fieldname"
+        o:
+          type: string
+          description: |
+            eq operator (Equals) \
+            ne operator (Not Equals) \
+            gt operator (Greater Than) \
+            ge operator (Greater Than or Equal) \
+            le operator (Less Than or Equal) \
+            and operator (And) \
+            or operator (Or) \
+            not operator (Not) 
+          enum:
+          - eq
+          - ne
+          - gt
+          - ge 
+          - lt
+          - le 
+          - and 
+          - or 
+          - not 
+          example: "eq"
+        v:
+          anyOf:
+            - type: string
+            - type: integer
+          description: Field Value
+          example: "anyvalue"
+      required:
+        - m
+        - o
+        - v
+        
     errorObject:
       title: errorObject
       type: object

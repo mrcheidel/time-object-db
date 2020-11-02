@@ -6,6 +6,7 @@
   "secretKey": "645267556B58703273357638792F423F4528472B4B6250655368566D59713374",
   "bodyParserLimit": "'50mb'",
   "searchResultLimit" : 300,
+  "enableEvents" : true,
   "useCluster": true,
   "hostname": "localhost",
   "protocol": "http"

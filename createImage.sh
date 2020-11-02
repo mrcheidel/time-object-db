@@ -1,3 +1,4 @@
+#!/bin/sh
 docker stop time-object-db-instance
 docker rm time-object-db-instance
 docker rmi time-object-db
