@@ -15,5 +15,5 @@ docker run -d --name time-object-db-instance -h time-object-db-instance -v $(pwd
 IMAGEID="$(docker images --format='{{.Repository}} {{.ID}}' | grep '^time-object-db ' | cut -d' ' -f2)"
 docker tag $IMAGEID mrcheidel/time-object-db:latest
 
-#docker push mrcheidel/time-object-db:latest
+docker push mrcheidel/time-object-db:latest
 
